@@ -1,25 +1,22 @@
 import socket
 
 class secureUDP():
-
+	sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	def __init__(self): #constructor
 		pass
 
-	def crearSocket(ip,puerto):
-		sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
-		server_address = ip
-		server_port = puerto
-
-		server = (server_address,server_port)
-		sock.bind(server)
-		print("Listening on " + server_address + ":" + str(server_port))
+	def crearSocket(self,ip,puerto):
+		server = (ip,puerto)
+		self.sock.bind(server)
+		print("Listening on " + ip + ":" + str(puerto))
 
 		while True:
-			payload, client_address = sock.recvfrom(1024)
+			payload, client_address = self.sock.recvfrom(1024)
 			print(payload)
 
-def main():
-	sUDP = secureUDP()
+	def send(datos,ip,puerto):
+		serverAddress = (ip, puerto)
+		self.sock.sendto(datos, serverAddress)
 
-if __name__ == '__main__': main()
+	def receive(puerto):
+		pass

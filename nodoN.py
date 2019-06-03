@@ -1,6 +1,4 @@
-import socket
 from secureUDP import secureUDP
-
 
 class nodoN():
     ##constructor de la clase nodo
@@ -8,7 +6,7 @@ class nodoN():
 		self.ip = ip
 		self.puerto = puerto
 		self.list = []
-		secureUDP.crearSocket(ip,puerto)
+		secureUDP().crearSocket(ip,puerto)
 
     ##Metodo cargar archivo en una lista de listas desde los argumentos
     ## y la primera posicion es el nombre del nodo seguido de sus vecinos
