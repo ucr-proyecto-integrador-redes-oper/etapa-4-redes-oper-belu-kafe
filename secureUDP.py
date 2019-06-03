@@ -3,6 +3,7 @@ import socket
 class secureUDP():
 
 	def __init__(self): #constructor
+		pass
 
 def main():
 	sUDP = secureUDP()
