@@ -38,7 +38,13 @@ class nodoN():
     ##metodo que devuelve una lista de los vecinos solicitados
 	def listaVecinos(self, nodo):
 		vecinos=[]
-		for dato in self.list[nodo-1]:
+		indice=0
+		for reg in list:
+            if reg[0] == nodo:
+                break
+            indice += 1
+            
+		for dato in self.list[indice]:
 			if dato !='' and dato != str(nodo):
 				vecinos.append(dato)
 				self.mapa[str(dato[0])] = () #se agrega al mapa con la tupla vacía
