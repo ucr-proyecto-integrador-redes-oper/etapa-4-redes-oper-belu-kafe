@@ -7,6 +7,7 @@ class nodoN():
 		self.ip = ip
 		self.puerto = puerto
 		self.list = []
+		self.mapa = {} #mapa que recibe key como string y una tupla de ip y puerto
 		sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 		server_address = ip
@@ -43,11 +44,16 @@ class nodoN():
 				for dato in fila:
 					if dato !='' and dato != nodo:
 						vecinos.append(dato)
+						self.mapa[str(dato[0])] = () #se agrega al mapa con la tupla vacía
 		print(vecinos)
 		return vecinos
 
 
+	def esperarAsignacion():
+		pass
 
+	def actualizarEstructuras(key, ip, puerto):
+		self.mapa[key] = (ip, puerto)
 
 
 def main():
