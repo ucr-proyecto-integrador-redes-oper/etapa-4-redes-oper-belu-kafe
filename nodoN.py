@@ -1,16 +1,26 @@
 import socket
 
 
-class nodoN()
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+class nodoN():
 
-server_address = '0.0.0.0'
-server_port = 8888
+	def __init__(self, ip, puerto): #constructor
+		self.ip = ip
+		self.puerto = puerto
 
-server = (server_address,server_port)
-sock.bind(server)
-print("Listening on " + server_address + ":" + str(server_port))
+		sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-while True:
-	payload, client_address = sock.recvfrom(1024)
-	print(payload)
+		server_address = ip
+		server_port = puerto
+
+		server = (server_address,server_port)
+		sock.bind(server)
+		print("Listening on " + server_address + ":" + str(server_port))
+
+		while True:
+			payload, client_address = sock.recvfrom(1024)
+			print(payload)
+
+def main():
+	servidor = nodoN('0.0.0.0',8888)
+
+if __name__ == '__main__': main()
