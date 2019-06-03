@@ -4,6 +4,7 @@ import re # Para usar RegEx (Expresiones Regulares)
 
 host = ""
 port = 0
+
 if len(sys.argv) > 2:
     ip = str(sys.argv[1])
     puerto = str(sys.argv[2])
@@ -13,7 +14,7 @@ if len(sys.argv) > 2:
         if ip=="localhost":
            host=ip
            port=int(puerto)
-        else:   
+        else:
            print("Dirección IP: ", x.group())
            host=ip
            port=int(puerto)
@@ -24,5 +25,5 @@ else:
     print("No ingresó argumentos: ")
     print("Debe ingresar ip y puerto en los argumentos")
     sys.exit(0)
-	
+
 blue = ClientNode(host, port)
