@@ -15,7 +15,6 @@ if len(sys.argv) > 2:
            host=ip
            port=int(puerto)
         else:
-           print("Dirección IP: ", x.group())
            host=ip
            port=int(puerto)
     except:
