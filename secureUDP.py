@@ -13,6 +13,6 @@ class secureUDP():
 		serverAddress = (ip, puerto)
 		self.sock.sendto(datos, serverAddress)
 
-	def receive(self, puerto):
+	def receive(self):
 		msg = self.sock.recvfrom(1024)
 		return msg

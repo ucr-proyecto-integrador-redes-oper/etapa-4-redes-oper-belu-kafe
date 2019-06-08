@@ -1,9 +1,13 @@
 from secureUDP import secureUDP
+from Util import str_ip_to_tuple, ip_to_bytes, ip_tuple_to_str, ip_to_int_tuple
 import sys
 import csv
 
 
 class nodoN():
+	hostname = socket.gethostname()
+	localIP = socket.gethostbyname(hostname)
+	localPort = 2019
 	ORANGE_PORT = 9999
 	BLUE_PORT = 19999
     # constructor de la clase nodo
@@ -13,7 +17,8 @@ class nodoN():
 		self.list = []
 		self.cola = []
 		self.mapa = {}  # mapa que recibe key como string y una tupla de ip y puerto
-		self.secureUDP = secureUDP(self.ip, self.puerto)
+		self.secureUDPOrange = secureUDP(self.localIP, self.ORANGE_PORT)
+		self.secureUDPBlue = secureUDP(self.localIP, self.BLUE_PORT)
 		self.cargarArchivo()
 
     # Metodo cargar archivo en una lista de listas desde los argumentos
@@ -56,7 +61,7 @@ class nodoN():
 
 	def recibirToken(self):
 		while True:
-			msg = secureUDP.receive(ORANGE_PORT)
+			msg = secureUDPOrange.receive()
 			if msg[0] == "I":
 				# self.tokenInicial(msg)
 				pass
@@ -72,7 +77,7 @@ class nodoN():
 	
 	def recibirSolicitud(self):
 		while True:
-			msg = secureUDP.receive(BLUE_PORT)
+			msg = secureUDPBlue.receive()
 			cola.append(msg)
 
 	def actualizarEstructuras(self, key, ip, puerto):
