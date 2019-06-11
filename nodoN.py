@@ -1,8 +1,9 @@
 from secureUDP import secureUDP
 from Util import str_ip_to_tuple, ip_to_bytes, ip_tuple_to_str, ip_to_int_tuple
 import sys
+import socket
 import csv
-
+from threading import Thread
 
 class nodoN():
 	hostname = socket.gethostname()
@@ -78,7 +79,12 @@ class nodoN():
 	def recibirSolicitud(self):
 		while True:
 			msg = secureUDPBlue.receive()
-			cola.append(msg)
+			ip = ip_tuple_to_str(ip_to_int_tuple(msg[0:4]))
+			port = int.from_bytes(msg[4:6], byteorder='big')
+			info = ip, port
+			print(info)
+			cola.append(info)
+
 
 	def actualizarEstructuras(self, key, ip, puerto):
 		self.mapa[key] = (ip, puerto)
@@ -91,6 +97,8 @@ class nodoN():
 
 def main():
 	servidor = nodoN('0.0.0.0',8888)
+	hiloAzul = Thread(target=servidor.recibirSolicitud, args=())
+	hiloAzul.start()
 	#servidor.actualizarEstructuras("9", "1.1.1.1", "5555")
 	
 if __name__ == '__main__': main()
