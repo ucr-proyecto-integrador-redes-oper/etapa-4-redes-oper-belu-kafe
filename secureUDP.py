@@ -1,8 +1,9 @@
 import socket
 
 class secureUDP():
-	sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+	
 	def __init__(self, ip = "", puerto = 0): #constructor
+		self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		self.crearSocket(ip,puerto)
 
 	def crearSocket(self,ip,puerto):
