@@ -84,7 +84,7 @@ class nodoN():
 			port = int.from_bytes(msg[4:6], byteorder='big')
 			info = ip, port
 			print(info)
-			self.secureUDPBlue.send("Hola", ip, port)
+			self.secureUDPBlue.send(str.encode("Hola"), ip, port)
 			break
 			cola.append(info)
 		# pass

@@ -28,7 +28,7 @@ class secureUDP():
 	##Método que envía mensajes útiles	
 	def send(self, datos,ip,puerto):
 		address = (ip, puerto)
-		msg = (0).to_bytes(1, byteorder="big") + (self.SN).to_bytes(2, byteorder="big") + datos #BUG (cannot concatenate str to bytes)
+		msg = (0).to_bytes(1, byteorder="big") + (self.SN).to_bytes(2, byteorder="big") + datos
 		self.SN = (self.SN + 1) % (2**16) #para asignar SN's
 		self.sock.sendto(msg, address)
 		parAM = (address, msg)
@@ -43,7 +43,7 @@ class secureUDP():
 	def checktoResend(self):
 		while True:
 			#timer
-			sleep(0.03) #cada 30 milisegundos revisa la lista
+			sleep(1) #cada 30 milisegundos revisa la lista
 			#tomo lock
 			self.lockSend.acquire()
 			for address, msg in self.enviados:
