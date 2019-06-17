@@ -10,19 +10,18 @@ class nodoN():
 	ORANGE_PORT = 9999
 	BLUE_PORT = 19999
     # constructor de la clase nodo
-	def __init__(self, ip, puerto):  # constructor
+	def __init__(self, ip, port):  # constructor
 		self.hostname = socket.gethostname()
 		self.localIP = socket.gethostbyname(self.hostname)
-		self.localPort = 2019
-		self.ip = ip
-		self.puerto = puerto
+		self.nextOrangeIp = ip
+		self.nextOrangePort = port
 		self.list = []
 		self.cola = []
 		self.mapa = {}  # mapa que recibe key como string y una tupla de ip y puerto
 		self.secureUDPOrange = secureUDP(self.localIP, self.ORANGE_PORT)
 		self.secureUDPBlue = secureUDP(self.localIP, self.BLUE_PORT)
 		self.cargarArchivo()
-
+		print(self.localIP)
     # Metodo cargar archivo en una lista de listas desde los argumentos
     # y la primera posicion es el nombre del nodo seguido de sus vecinos
 	def cargarArchivo(self):
@@ -30,8 +29,8 @@ class nodoN():
 		if len(sys.argv) >= 2:
 			archivo = sys.argv[1]
 		else:
-			print("Este programa necesita un parámetro");
-			exit(0)
+			archivo = "grafo.csv"
+			print("Se usará el nombre predeterminado grafo.csv");
 		with open(archivo) as csvarchivo:
 			entrada = csv.reader(csvarchivo, delimiter=',')
 			for dato in entrada:
@@ -44,7 +43,7 @@ class nodoN():
 		# Debugging
 		# for r in range(len(self.list)):
 		# 	print(self.list[r])
-		print(self.mapa)
+		print(self.list)
 
     # metodo que devuelve una lista de los vecinos solicitados
 	def listaVecinos(self, nodo):
@@ -79,11 +78,14 @@ class nodoN():
 	
 	def recibirSolicitud(self):
 		while True:
-			msg = self.secureUDPBlue.receive()
+			msg = self.secureUDPBlue.getMessage()
+			print("¡Got request!")
 			ip = ip_tuple_to_str(ip_to_int_tuple(msg[0:4]))
 			port = int.from_bytes(msg[4:6], byteorder='big')
 			info = ip, port
 			print(info)
+			self.secureUDPBlue.send("Hola", ip, port)
+			break
 			cola.append(info)
 		# pass
 
@@ -97,9 +99,8 @@ class nodoN():
 		
 
 def main():
-	servidor = nodoN('0.0.0.0',8888)
-	hiloAzul = Thread(target=servidor.recibirSolicitud, args=())
-	hiloAzul.start()
+	servidor = nodoN('127.0.0.0',9999)
+	servidor.recibirSolicitud()
 	#servidor.actualizarEstructuras("9", "1.1.1.1", "5555")
 	
 if __name__ == '__main__':
