@@ -130,28 +130,38 @@ class nodoN():
 		for naranja in self.listaNaranjas:
 			lAux = naranja.split(".")
 			if int(miIp[0]) < int(lAux[0]):
+				soyIpMenor = True
 				continue
 			elif int(miIp[0]) == int(lAux[0]):
 				if int(miIp[1]) < int(lAux[1]):
+					soyIpMenor = True
 					continue
 				elif int(miIp[1]) == int(lAux[1]):
 					if int(miIp[2]) < int(lAux[2]):
+						soyIpMenor = True
 						continue
 					elif int(miIp[2]) == int(lAux[2]):
 						if int(miIp[3]) < int(lAux[3]):
+							soyIpMenor = True
 							continue
 						elif int(miIp[3]) == int(lAux[3]):
 							if int(miIp[4]) < int(lAux[3]):
 								soyIpMenor = True
 						else: 
-							continue
+							soyIpMenor = False
+							break
 					else:
-						continue
+						soyIpMenor = False
+						break
 				else:
-					continue
+					soyIpMenor = False
+					break
 			else:
 				break
-		# si soy yo  el menor emito el token ocupado
+		
+		if soyIpMenor:
+			#hago asignaciones, mando token ocupado
+			pass
 		# si no no hago nada
 
 	# def timerInicial(self):
@@ -162,8 +172,6 @@ class nodoN():
 	# 			return True
 	# 		else:
 	# 			return False
-	
-		
 
 	def recibirSolicitud(self):
 		while True:
