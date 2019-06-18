@@ -22,7 +22,6 @@ class nodoN():
 		self.listaNaranjas = []
 		##############Para obtener el nodo generador###################
 		self.socketNN = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-		self.lockRecibirPaqsIniciales = Lock()
 		self.nextOrange = (self.nextOrangeIp, self.nextOrangePort)
 		self.socketNN.bind(self.nextOrange)
 
@@ -89,29 +88,29 @@ class nodoN():
 	
 	def enviarPaqIniciales(self, ipNaranja): #Para definir el nodo generador
 		miDireccion = ipNaranja.split(".")
-		msg = (TOKEN_INICIAL).to_bytes(1, byteorder="big") + (int(miDireccion[0])).to_bytes(1, byteorder="big") + (int(miDireccion[1])).to_bytes(1, byteorder="big") + (int(miDireccion[2])).to_bytes(1, byteorder="big") + (int(miDireccion[3])).to_bytes(1, byteorder="big")
+		msg = (TOKEN_INICIAL).to_bytes(1, byteorder="big") + (int(miDireccion[0])).to_bytes(1, byteorder="big") + (int(miDireccion[1])).to_bytes(1, byteorder="big") +(int(miDireccion[2])).to_bytes(1, byteorder="big") + (int(miDireccion[3])).to_bytes(1, byteorder="big")
 		self.socketNN.sendto(msg, (self.nextOrangeIp, self.nextOrangePort))
 
 
-	def recibirPaqsIniciales(self):
+	def recibirNaranja(self):
 		#esperar a recibir 5 paquetes
 		while True:
 			msg, address = socketNN.recvfrom(1024)
 			tipoMensaje = int.from_bytes(msg[0], byteorder='big')
 			if tipoMensaje == TOKEN_INICIAL:
-				ipNaranja = ip_tuple_to_str(ip_to_int_tuple(msg[1:4]))
+				self.procesoInicial(msg) 
 
-			self.lockRecibirPaqsIniciales.acquire()
-			if ipNaranja != self.localIP:
-				listaNaranjas.append(ipNaranja)
-				self.enviarPaqIniciales(ipNaranja)
 
-			if len(self.listaNaranjas) == 5:
-				self.lockRecibirPaqsIniciales.release()
-				break
-			self.lockRecibirPaqsIniciales.release()
 
-		self.compararIpsNaranjas()
+	def procesoInicial(self, msg):
+		ipNaranja = ip_tuple_to_str(ip_to_int_tuple(msg[1:4]))
+
+		if ipNaranja != self.localIP:
+			listaNaranjas.append(ipNaranja)
+			self.enviarPaqIniciales(ipNaranja)
+
+		if len(self.listaNaranjas) == 5:
+			self.compararIpsNaranjas()
 
 	def compararIpsNaranjas(self):
 		#seleccionar la ip menor menor
@@ -170,6 +169,7 @@ class nodoN():
 		if(len(cola) != 0):
 			solicitud = cola.pop(0)
 			nodoId = int(self.getNodoId())
+			actualizarEstructuras(nodoId, solicitud[0], solicitud[1])
 			nodoIdBytes = nodoId.to_bytes(2,"big")
 			vecinos = listaVecinos(nodoId)
 			for n in vecinos:
@@ -199,11 +199,6 @@ class nodoN():
 
 	def actualizarEstructuras(self, key, ip, puerto):
 		self.mapa[key] = (ip, puerto)
-		# print(self.mapa)
-		vecinosNodo = self.listaVecinos(key)
-		# print (vecinosNodo)
-		#falta empaquetar esta informacion y pasarla a azules
-
 		
 
 def main():
