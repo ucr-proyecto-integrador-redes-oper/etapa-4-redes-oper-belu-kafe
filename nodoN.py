@@ -10,6 +10,7 @@ class nodoN():
 	
 	ORANGE_PORT = 9999
 	BLUE_PORT = 19999
+	TOKEN_INICIAL = 0
 	# constructor de la clase nodo
 	def __init__(self, ip, port):  # constructor
 		self.hostname = socket.gethostname()
@@ -87,30 +88,19 @@ class nodoN():
 		pass
 	
 	def enviarPaqIniciales(self, ipNaranja): #Para definir el nodo generador
-		# stop = False
-		# miDireccion = self.localIP
-		# msg = (1).to_bytes(1, byteorder="big") + miDireccion
-		# while stop == False:
-		# 	#enviamos paquete
-		# 	self.socketNN.sendto(msg, self.nextOrangeIp)
-		# 	#empezamos a correr el timer
-		# 	stop = self.timerInicial()
 		miDireccion = ipNaranja.split(".")
-		msg = (0).to_bytes(1, byteorder="big") + (int(miDireccion[0])).to_bytes(1, byteorder="big") + (int(miDireccion[1])).to_bytes(1, byteorder="big") + (int(miDireccion[2])).to_bytes(1, byteorder="big") + (int(miDireccion[3])).to_bytes(1, byteorder="big") + (1).to_bytes(1, byteorder="big")
+		msg = (TOKEN_INICIAL).to_bytes(1, byteorder="big") + (int(miDireccion[0])).to_bytes(1, byteorder="big") + (int(miDireccion[1])).to_bytes(1, byteorder="big") + (int(miDireccion[2])).to_bytes(1, byteorder="big") + (int(miDireccion[3])).to_bytes(1, byteorder="big")
 		self.socketNN.sendto(msg, (self.nextOrangeIp, self.nextOrangePort))
-		# print(str(msg))
-		# print(msg)
-		# valor = msg.decode("utf-8")
-		# print(valor)
-		# print(str(valor))
 
 
 	def recibirPaqsIniciales(self):
 		#esperar a recibir 5 paquetes
 		while True:
 			msg, address = socketNN.recvfrom(1024)
-			aux = (int(val)).to_bytes(6, byteorder="big")######Revisar 
-			ipNaranja = str(aux) ######si 
+			tipoMensaje = int.from_bytes(msg[0], byteorder='big')
+			if tipoMensaje == TOKEN_INICIAL:
+				ipNaranja = ip_tuple_to_str(ip_to_int_tuple(msg[1:4]))
+
 			self.lockRecibirPaqsIniciales.acquire()
 			if ipNaranja != self.localIP:
 				listaNaranjas.append(ipNaranja)
@@ -145,7 +135,7 @@ class nodoN():
 							soyIpMenor = True
 							continue
 						elif int(miIp[3]) == int(lAux[3]):
-							if int(miIp[4]) < int(lAux[3]):
+							if int(miIp[4]) < int(lAux[4]):
 								soyIpMenor = True
 						else: 
 							soyIpMenor = False
@@ -157,21 +147,14 @@ class nodoN():
 					soyIpMenor = False
 					break
 			else:
+				soyIpMenor = False
 				break
 		
 		if soyIpMenor:
 			#hago asignaciones, mando token ocupado
 			pass
 		# si no no hago nada
-
-	# def timerInicial(self):
-	# 	while True:
-	# 		sleep(180) #Esperamos 3 minutos
-	# 		#pregunta si ya tiene los 5 mensajes con las ip de los otros naranjas
-	# 		if len(self.listaNaranjas) == 5:
-	# 			return True
-	# 		else:
-	# 			return False
+		pass
 
 	def recibirSolicitud(self):
 		while True:
@@ -184,7 +167,6 @@ class nodoN():
 			self.secureUDPBlue.send(str.encode("Hola"), ip, port)
 			break
 			cola.append(info)
-		# pass
 
 	def actualizarEstructurasEstructuras(self, key, ip, puerto):
 		self.mapa[key] = (ip, puerto)
@@ -198,8 +180,10 @@ class nodoN():
 def main():
 	servidor = nodoN('127.0.0.0',9999)
 	#servidor.recibirSolicitud()
-	servidor.actualizarEstructuras("9", "1.1.1.1", "5555")
+	#servidor.actualizarEstructuras("9", "1.1.1.1", "5555")
 	#servidor.enviarPaqIniciales("127.0.1.1")
+	# servidor.listaNaranjas = ["127.3.5.100", "127.0.1.2", "127.0.1.5"]
+	# servidor.compararIpsNaranjas()
 	
 if __name__ == '__main__':
 	main()
