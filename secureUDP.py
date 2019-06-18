@@ -20,12 +20,12 @@ class secureUDP():
 		hiloRecv.start()
 		hiloCheckList.start()
 
-	##Método que crea un socket	
+	##Metodo que crea un socket	
 	def crearSocket(self,ip,puerto):
 		server = (ip,puerto)
 		self.sock.bind(server)
 
-	##Método que envía mensajes útiles	
+	##Metodo que envia mensajes utiles	
 	def send(self, datos,ip,puerto):
 		address = (ip, puerto)
 		msg = (0).to_bytes(1, byteorder="big") + (self.SN).to_bytes(2, byteorder="big") + datos

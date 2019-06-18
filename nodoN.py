@@ -40,11 +40,11 @@ class nodoN():
 			archivo = sys.argv[1]
 		else:
 			archivo = "grafo.csv"
-			print("Se usará el nombre predeterminado grafo.csv");
+			print("Se usara el nombre predeterminado grafo.csv")
 		with open(archivo) as csvarchivo:
 			entrada = csv.reader(csvarchivo, delimiter=',')
 			for dato in entrada:
-				self.mapa[str(dato[0])] = () #Se agregan nodos al mapa, con tupla vacía
+				self.mapa[str(dato[0])] = (0,0) #Se agregan nodos al mapa, con tupla vacia
 				vecinos = []
 				for vecino in dato:
 					if(vecino != 0):
@@ -53,7 +53,7 @@ class nodoN():
 		# Debugging
 		# for r in range(len(self.list)):
 		# 	print(self.list[r])
-		#print(self.list)
+		print(self.list)
 
 	# metodo que devuelve una lista de los vecinos solicitados
 	def listaVecinos(self, nodo):
@@ -176,22 +176,51 @@ class nodoN():
 	def recibirSolicitud(self):
 		while True:
 			msg = self.secureUDPBlue.getMessage()
-			print("¡Got request!")
+			print("Got request!")
 			ip = ip_tuple_to_str(ip_to_int_tuple(msg[0:4]))
 			port = int.from_bytes(msg[4:6], byteorder='big')
 			info = ip, port
 			print(info)
-			self.secureUDPBlue.send(str.encode("Hola"), ip, port)
-			break
 			cola.append(info)
 		# pass
 
-	def actualizarEstructurasEstructuras(self, key, ip, puerto):
+	def recibirTokenVacio(self):
+		if(len(cola) != 0):
+			solicitud = cola.pop(0)
+			nodoId = int(self.getNodoId())
+			nodoIdBytes = nodoId.to_bytes(2,"big")
+			vecinos = listaVecinos(nodoId)
+			for n in vecinos:
+				if self.mapa[n] == (0,0):
+					vecinoBytes = n.to_bytes(2,"big")
+					paqueteFinal = nodoIdBytes + vecinoBytes
+					self.secureUDPBlue.send(paqueteFinal, solicitud[0], solicitud[1])
+				else:
+					vecinoBytes = n.to_bytes(2,"big")
+					vecinoIP = self.mapa[n][0].to_bytes(4, "big")
+					vecinoPort = self.mapa[n][1].to_bytes(2, "big")
+					paqueteFinal = nodoIdBytes + vecinoBytes + vecinoIP + vecinoPort
+					self.secureUDPBlue.send(paqueteFinal, solicitud[0], solicitud[1])
+			return nodoId
+		else:
+			return -1
+		
+					
+					
+				
+			
+	def getNodoId(self):
+		for x, y in self.mapa.items():
+			if y == (0,0):
+				return x
+		
+
+	def actualizarEstructuras(self, key, ip, puerto):
 		self.mapa[key] = (ip, puerto)
 		# print(self.mapa)
 		vecinosNodo = self.listaVecinos(key)
 		# print (vecinosNodo)
-		#falta empaquetar esta información y pasarla a azules
+		#falta empaquetar esta informacion y pasarla a azules
 
 		
 
