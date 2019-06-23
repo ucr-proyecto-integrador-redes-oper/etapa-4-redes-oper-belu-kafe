@@ -11,6 +11,7 @@ class nodoN():
 	ORANGE_PORT = 9999
 	BLUE_PORT = 19999
 	TOKEN_INICIAL = 0
+	TOKEN_COMPLETE = 1 ##########################################Preguntar
 	# constructor de la clase nodo
 	def __init__(self, ip, port):  # constructor
 		self.hostname = socket.gethostname()
@@ -111,6 +112,13 @@ class nodoN():
 
 		if len(self.listaNaranjas) == 5:
 			self.compararIpsNaranjas()
+
+
+	def enviarPaqComplete(self, ipAzul, puertoAzul):
+		miDireccion = self.localIP.split(".")
+		ipAzul = ipAzul.split(".")
+		msg = (TOKEN_COMPLETE).to_bytes(1, byteorder="big") + (int(miDireccion[0])).to_bytes(1, byteorder="big") + (int(miDireccion[1])).to_bytes(1, byteorder="big") +(int(miDireccion[2])).to_bytes(1, byteorder="big") + (int(miDireccion[3])).to_bytes(1, byteorder="big") + (int(ipAzul[0])).to_bytes(1, byteorder="big") + (int(ipAzul[1])).to_bytes(1, byteorder="big") + (int(ipAzul[2])).to_bytes(1, byteorder="big") + (int(ipAzul[3])).to_bytes(1, byteorder="big") + (puertoAzul).to_bytes(1, byteorder="big")
+		socketNN.sendto(msg, (self.nextOrangeIp, self.nextOrangePort))
 
 	def compararIpsNaranjas(self):
 		#seleccionar la ip menor menor
