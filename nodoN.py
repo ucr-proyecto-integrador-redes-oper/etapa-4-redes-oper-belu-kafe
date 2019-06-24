@@ -11,7 +11,8 @@ class nodoN():
 	ORANGE_PORT = 9999
 	BLUE_PORT = 19999
 	TOKEN_INICIAL = 0
-	TOKEN_COMPLETE = 1 ##########################################Preguntar
+	TOKEN_ASIGNACION = 1
+	TOKEN_COMPLETE = 2
 	# constructor de la clase nodo
 	def __init__(self, ip, port):  # constructor
 		self.hostname = socket.gethostname()
@@ -21,12 +22,9 @@ class nodoN():
 		self.list = []
 		self.cola = []
 		self.listaNaranjas = []
-		##############Para obtener el nodo generador###################
 		self.socketNN = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		self.nextOrange = (self.nextOrangeIp, self.nextOrangePort)
 		self.socketNN.bind(self.nextOrange)
-
-		###############################################################
 		self.mapa = {}  # mapa que recibe key como string y una tupla de ip y puerto
 		self.secureUDPOrange = secureUDP(self.localIP, self.ORANGE_PORT)
 		self.secureUDPBlue = secureUDP(self.localIP, self.BLUE_PORT)
@@ -70,38 +68,27 @@ class nodoN():
 				vecinos.append(dato)
 		#print(vecinos)
 		return vecinos
-
-	def recibirToken(self):
-		while True:
-			msg = secureUDPOrange.receive()
-			if msg[0] == "I":
-				# self.tokenInicial(msg)
-				pass
-			elif msg[0] == "T":
-				# self.token(msg)
-				pass
-
-	def tokenInicial(self, tokenInicial):
-		pass
-
-	def token(self, token):
-		pass
 	
-	def enviarPaqIniciales(self, ipNaranja): #Para definir el nodo generador
+	#metodo que envia la ip del naranja actual para determinar cual será el nodo generador
+	def enviarPaqIniciales(self, ipNaranja):
 		miDireccion = ipNaranja.split(".")
 		msg = (TOKEN_INICIAL).to_bytes(1, byteorder="big") + (int(miDireccion[0])).to_bytes(1, byteorder="big") + (int(miDireccion[1])).to_bytes(1, byteorder="big") +(int(miDireccion[2])).to_bytes(1, byteorder="big") + (int(miDireccion[3])).to_bytes(1, byteorder="big")
 		self.socketNN.sendto(msg, (self.nextOrangeIp, self.nextOrangePort))
 
-
+	#metodo que procesa tokens según su tipo
 	def recibirNaranja(self):
 		#esperar a recibir 5 paquetes
 		while True:
 			msg, address = socketNN.recvfrom(1024)
 			tipoMensaje = int.from_bytes(msg[0], byteorder='big')
 			if tipoMensaje == TOKEN_INICIAL:
-				self.procesoInicial(msg) 
-
-
+				self.procesoInicial(msg)
+			elif tipoMensaje == TOKEN_ASIGNACION:
+				#debe preguntar si ya asignó todos los nodos, si es así llama a self.enviarPaqComplete(self, ipAzul, puertoAzul)
+				pass
+			elif tipoMensaje == TOKEN_COMPLETE:
+				#ya asigné a todos mis azules
+				pass
 
 	def procesoInicial(self, msg):
 		ipNaranja = ip_tuple_to_str(ip_to_int_tuple(msg[1:4]))
@@ -113,15 +100,15 @@ class nodoN():
 		if len(self.listaNaranjas) == 5:
 			self.compararIpsNaranjas()
 
-
+	#metodo que envía el paquete Complete entre los demás naranjas
 	def enviarPaqComplete(self, ipAzul, puertoAzul):
 		miDireccion = self.localIP.split(".")
 		ipAzul = ipAzul.split(".")
-		msg = (TOKEN_COMPLETE).to_bytes(1, byteorder="big") + (int(miDireccion[0])).to_bytes(1, byteorder="big") + (int(miDireccion[1])).to_bytes(1, byteorder="big") +(int(miDireccion[2])).to_bytes(1, byteorder="big") + (int(miDireccion[3])).to_bytes(1, byteorder="big") + (int(ipAzul[0])).to_bytes(1, byteorder="big") + (int(ipAzul[1])).to_bytes(1, byteorder="big") + (int(ipAzul[2])).to_bytes(1, byteorder="big") + (int(ipAzul[3])).to_bytes(1, byteorder="big") + (puertoAzul).to_bytes(1, byteorder="big")
+		msg = (TOKEN_COMPLETE).to_bytes(1, byteorder="big") #+ (int(miDireccion[0])).to_bytes(1, byteorder="big") + (int(miDireccion[1])).to_bytes(1, byteorder="big") +(int(miDireccion[2])).to_bytes(1, byteorder="big") + (int(miDireccion[3])).to_bytes(1, byteorder="big") + (int(ipAzul[0])).to_bytes(1, byteorder="big") + (int(ipAzul[1])).to_bytes(1, byteorder="big") + (int(ipAzul[2])).to_bytes(1, byteorder="big") + (int(ipAzul[3])).to_bytes(1, byteorder="big") + (puertoAzul).to_bytes(1, byteorder="big")
 		socketNN.sendto(msg, (self.nextOrangeIp, self.nextOrangePort))
 
+	#metodo que compara las ips de los naranjas para determinar cual empieza a con la asignación
 	def compararIpsNaranjas(self):
-		#seleccionar la ip menor menor
 		soyIpMenor = False
 		miIp = self.localIP.split(".")
 		for naranja in self.listaNaranjas:
@@ -160,8 +147,6 @@ class nodoN():
 		if soyIpMenor:
 			#hago asignaciones, mando token ocupado
 			pass
-		# si no no hago nada
-		pass
 
 	def recibirSolicitud(self):
 		while True:
@@ -194,11 +179,7 @@ class nodoN():
 			return nodoId
 		else:
 			return -1
-		
 					
-					
-				
-			
 	def getNodoId(self):
 		for x, y in self.mapa.items():
 			if y == (0,0):
@@ -219,3 +200,5 @@ def main():
 	
 if __name__ == '__main__':
 	main()
+
+
