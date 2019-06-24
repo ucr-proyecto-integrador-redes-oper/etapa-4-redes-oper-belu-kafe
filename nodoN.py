@@ -29,6 +29,7 @@ class nodoN():
 		self.mapa = {}  # mapa que recibe key como string y una tupla de ip y puerto
 		self.secureUDPBlue = secureUDP(self.localIP, self.BLUE_PORT)
 		self.cargarArchivo()
+		self.enviarPaqIniciales(self.localIP)
 		print(self.localIP)
 
 	# Metodo cargar archivo en una lista de listas desde los argumentos
@@ -40,8 +41,7 @@ class nodoN():
 		else:
 			archivo = "grafo.csv"
 			print("Se usara el nombre predeterminado grafo.csv")
-		with open(archivo) as csvarchivo:
-			entrada = csv.reader(csvarchivo, delimiter=',')
+		with open(archivo) as csvarchivo:			entrada = csv.reader(csvarchivo, delimiter=',')
 			for dato in entrada:
 				self.mapa[str(dato[0])] = (0,0) #Se agregan nodos al mapa, con tupla vacia
 				vecinos = []
@@ -74,6 +74,11 @@ class nodoN():
 		miDireccion = ipNaranja.split(".")
 		msg = (TOKEN_INICIAL).to_bytes(1, byteorder="big") + (int(miDireccion[0])).to_bytes(1, byteorder="big") + (int(miDireccion[1])).to_bytes(1, byteorder="big") +(int(miDireccion[2])).to_bytes(1, byteorder="big") + (int(miDireccion[3])).to_bytes(1, byteorder="big")
 		self.socketNN.sendto(msg, (self.nextOrangeIp, self.nextOrangePort))
+		try:
+			resp, address = self.socketNN.recvfrom(1024)
+			self.sendTokenVacio()
+		except socket.timeout:
+			pass
 
 	#metodo que procesa tokens según su tipo
 	def recibirNaranja(self):
@@ -109,9 +114,7 @@ class nodoN():
 			self.compararIpsNaranjas()
 
 	#metodo que envía el paquete Complete entre los demás naranjas
-	def enviarPaqComplete(self, ipAzul, puertoAzul):
-		miDireccion = self.localIP.split(".")
-		ipAzul = ipAzul.split(".")
+	def enviarPaqComplete(self):
 		msg = (TOKEN_COMPLETE).to_bytes(1, byteorder="big") #+ (int(miDireccion[0])).to_bytes(1, byteorder="big") + (int(miDireccion[1])).to_bytes(1, byteorder="big") +(int(miDireccion[2])).to_bytes(1, byteorder="big") + (int(miDireccion[3])).to_bytes(1, byteorder="big") + (int(ipAzul[0])).to_bytes(1, byteorder="big") + (int(ipAzul[1])).to_bytes(1, byteorder="big") + (int(ipAzul[2])).to_bytes(1, byteorder="big") + (int(ipAzul[3])).to_bytes(1, byteorder="big") + (puertoAzul).to_bytes(1, byteorder="big")
 		socketNN.sendto(msg, (self.nextOrangeIp, self.nextOrangePort))
 
@@ -233,7 +236,10 @@ class nodoN():
 		
 
 def main():
-	servidor = nodoN('127.0.0.0',9998)
+	ip = input("Digite la IP del siguiente naranja")
+	port = input("Digite el puerto del siguiente naranja")
+	inpot("Presione enter para iniciar proceso")
+	servidor = nodoN(ip, port)
 	#servidor.recibirSolicitud()
 	#servidor.actualizarEstructuras("9", "1.1.1.1", "5555")
 	#servidor.enviarPaqIniciales("127.0.1.1")
