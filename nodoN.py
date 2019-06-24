@@ -24,14 +24,9 @@ class nodoN():
 		self.list = []
 		self.cola = []
 		self.listaNaranjas = []
-		##############Para obtener el nodo generador###################
 		self.socketNN = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-		self.nextOrange = (self.nextOrangeIp, self.nextOrangePort)
-		self.socketNN.bind(self.nextOrange)
-
-		###############################################################
+		self.socketNN.bind((self.localIP, self.ORANGE_PORT))
 		self.mapa = {}  # mapa que recibe key como string y una tupla de ip y puerto
-		self.secureUDPOrange = secureUDP(self.localIP, self.ORANGE_PORT)
 		self.secureUDPBlue = secureUDP(self.localIP, self.BLUE_PORT)
 		self.cargarArchivo()
 		print(self.localIP)
@@ -74,12 +69,13 @@ class nodoN():
 		#print(vecinos)
 		return vecinos
 	
-	def enviarPaqIniciales(self, ipNaranja): #Para definir el nodo generador
+	#metodo que envia la ip del naranja actual para determinar cual será el nodo generador
+	def enviarPaqIniciales(self, ipNaranja):
 		miDireccion = ipNaranja.split(".")
 		msg = (TOKEN_INICIAL).to_bytes(1, byteorder="big") + (int(miDireccion[0])).to_bytes(1, byteorder="big") + (int(miDireccion[1])).to_bytes(1, byteorder="big") +(int(miDireccion[2])).to_bytes(1, byteorder="big") + (int(miDireccion[3])).to_bytes(1, byteorder="big")
 		self.socketNN.sendto(msg, (self.nextOrangeIp, self.nextOrangePort))
 
-
+	#metodo que procesa tokens según su tipo
 	def recibirNaranja(self):
 		#esperar a recibir 5 paquetes
 		while True:
@@ -102,9 +98,6 @@ class nodoN():
 				print("Token perdido, creando uno nuevo.")
 				self.crearToken()
 
-
-
-
 	def procesoInicial(self, msg):
 		ipNaranja = ip_tuple_to_str(ip_to_int_tuple(msg[1:4]))
 
@@ -115,8 +108,15 @@ class nodoN():
 		if len(self.listaNaranjas) == 5:
 			self.compararIpsNaranjas()
 
+	#metodo que envía el paquete Complete entre los demás naranjas
+	def enviarPaqComplete(self, ipAzul, puertoAzul):
+		miDireccion = self.localIP.split(".")
+		ipAzul = ipAzul.split(".")
+		msg = (TOKEN_COMPLETE).to_bytes(1, byteorder="big") #+ (int(miDireccion[0])).to_bytes(1, byteorder="big") + (int(miDireccion[1])).to_bytes(1, byteorder="big") +(int(miDireccion[2])).to_bytes(1, byteorder="big") + (int(miDireccion[3])).to_bytes(1, byteorder="big") + (int(ipAzul[0])).to_bytes(1, byteorder="big") + (int(ipAzul[1])).to_bytes(1, byteorder="big") + (int(ipAzul[2])).to_bytes(1, byteorder="big") + (int(ipAzul[3])).to_bytes(1, byteorder="big") + (puertoAzul).to_bytes(1, byteorder="big")
+		socketNN.sendto(msg, (self.nextOrangeIp, self.nextOrangePort))
+
+	#metodo que compara las ips de los naranjas para determinar cual empieza a con la asignación
 	def compararIpsNaranjas(self):
-		#seleccionar la ip menor menor
 		soyIpMenor = False
 		miIp = self.localIP.split(".")
 		for naranja in self.listaNaranjas:
@@ -165,16 +165,16 @@ class nodoN():
 			self.sendTokenOcupado(nodoId)
 
 	def sendTokenVacio(self):
-		tipoMensaje = 3.to_bytes(1,"big")
+		tipoMensaje = (3).to_bytes(1,"big")
 		socketNN.sendto(tipoMensaje, self.nextOrangeAddress)
 
 	#Id=1 token ocupado con solicitud + nodo+ IP azul+ puerto azul
 	def sendTokenOcupado(self, nodoId):
-		msgId = 1.to_bytes(1, "big")
+		msgId = (1).to_bytes(1, "big")
 		nodoIdBytes = nodoId.to_bytes(2,"big") 
 		ipAzul = ip_to_bytes(str_ip_to_tuple(self.map[nodoId][0]))
 		portAzul = (self.map[nodoId][1]).to_bytes(2, byteorder="big")
-		msgFinal = msgId + nodoIdBytes + ipAzul = portAzul
+		msgFinal = msgId + nodoIdBytes + ipAzul + portAzul
 		self.socketNN.sendto(msgFinal, nextOrangeAddress)
 		try:
 			resp, address = self.socketNN.recvfrom(1024)
@@ -183,7 +183,6 @@ class nodoN():
 				self.sendTokenVacio()
 		except socket.timeout:
 			pass
-
 
 	def recibirSolicitud(self):
 		while True:
@@ -216,26 +215,25 @@ class nodoN():
 			return nodoId
 		else:
 			return -1
-		
+
 	def recibirTokenOcupado(self, msg):
 		nodoId = int.from_bytes(msg[1:3], byteorder='big')			
 		ip = ip_tuple_to_str(ip_to_int_tuple(msg[3:7]))
 		port = int.from_bytes(msg[7:9], byteorder='big')
 		self.actualizarEstructuras(nodoId, ip, port)
 		self.socketNN.sendto(msg, self.nextOrangeAddress)			
-			
+
 	def getNodoId(self):
 		for x, y in self.mapa.items():
 			if y == (0,0):
 				return x
-		
 
 	def actualizarEstructuras(self, key, ip, puerto):
 		self.mapa[key] = (ip, puerto)
 		
 
 def main():
-	servidor = nodoN('127.0.0.0',9999)
+	servidor = nodoN('127.0.0.0',9998)
 	#servidor.recibirSolicitud()
 	#servidor.actualizarEstructuras("9", "1.1.1.1", "5555")
 	#servidor.enviarPaqIniciales("127.0.1.1")
@@ -244,3 +242,5 @@ def main():
 	
 if __name__ == '__main__':
 	main()
+
+
