@@ -15,9 +15,10 @@ class nodoN():
 	TOKEN_COMPLETE = 2
 	TOKEN_VACIO = 3
 	# constructor de la clase nodo
-	def __init__(self, ip, port):  # constructor
+	def __init__(self, myIp ,ip, port):  # constructor
 		self.hostname = socket.gethostname()
-		self.localIP = socket.gethostbyname(self.hostname)
+		self.localIP = myIp
+		print(self.localIP)
 		self.nextOrangeIp = ip
 		self.nextOrangePort = port
 		self.nextOrangeAddress = (self.nextOrangeIp, self.nextOrangePort)
@@ -30,12 +31,11 @@ class nodoN():
 		self.mapa = {}  # mapa que recibe key como string y una tupla de ip y puerto
 		self.secureUDPBlue = secureUDP(self.localIP, self.BLUE_PORT)
 		self.cargarArchivo()
-		self.enviarPaqIniciales(self.localIP)
-		hiloRecvNaranja = Thread(target=self.recibirNaranja, args=())
+		#self.enviarPaqIniciales(self.localIP)
+		#hiloRecvNaranja = Thread(target=self.recibirNaranja, args=())
 		hiloRecvAzul = Thread(target=self.recibirSolicitud, args=())
-		hiloRecvNaranja.start()
+		#hiloRecvNaranja.start()
 		hiloRecvAzul.start()
-		print(self.localIP)
 
 	# Metodo cargar archivo en una lista de listas desde los argumentos
 	# y la primera posicion es el nombre del nodo seguido de sus vecinos
@@ -87,13 +87,13 @@ class nodoN():
 			listaNaranjas.append(ipNaranja)
 			self.enviarPaqIniciales(ipNaranja)
 
-		if len(self.listaNaranjas) == 5:
+		if len(self.listaNaranjas) == 2:
 			self.compararIpsNaranjas()
 
 	#metodo que envia la ip del naranja actual para determinar cual será el nodo generador
 	def enviarPaqIniciales(self, ipNaranja):
 		miDireccion = ipNaranja.split(".")
-		msg = (TOKEN_INICIAL).to_bytes(1, byteorder="big") + (int(miDireccion[0])).to_bytes(1, byteorder="big") + (int(miDireccion[1])).to_bytes(1, byteorder="big") +(int(miDireccion[2])).to_bytes(1, byteorder="big") + (int(miDireccion[3])).to_bytes(1, byteorder="big")
+		msg = (0).to_bytes(1, byteorder="big") + (int(miDireccion[0])).to_bytes(1, byteorder="big") + (int(miDireccion[1])).to_bytes(1, byteorder="big") +(int(miDireccion[2])).to_bytes(1, byteorder="big") + (int(miDireccion[3])).to_bytes(1, byteorder="big")
 		self.socketNN.sendto(msg, self.nextOrangeAddress)
 
 	#metodo que compara las ips de los naranjas para determinar cual empieza a con la asignación
@@ -266,10 +266,11 @@ class nodoN():
 		
 
 def main():
+	myIp = input("Digite la IP de esta máquina")
 	ip = input("Digite la IP del siguiente naranja: ")
 	port = input("Digite el puerto del siguiente naranja: ")
 	input("Presione enter para iniciar proceso.")
-	servidor = nodoN(ip, port)
+	servidor = nodoN(myIp, ip, port)
 	#servidor.recibirSolicitud()
 	#servidor.actualizarEstructuras("9", "1.1.1.1", "5555")
 	#servidor.enviarPaqIniciales("127.0.1.1")
