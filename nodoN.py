@@ -8,14 +8,14 @@ from time import sleep
 
 class nodoN():
 	
-	ORANGE_PORT = 9999
-	BLUE_PORT = 19999
-	TOKEN_INICIAL = 0
-	TOKEN_OCUPADO = 1
-	TOKEN_COMPLETE = 2
-	TOKEN_VACIO = 3
 	# constructor de la clase nodo
 	def __init__(self, myIp ,ip, port):  # constructor
+		self.ORANGE_PORT = 9999
+		self.BLUE_PORT = 19999
+		self.TOKEN_INICIAL = 0
+		self.TOKEN_OCUPADO = 1
+		self.TOKEN_COMPLETE = 2
+		self.TOKEN_VACIO = 3
 		self.hostname = socket.gethostname()
 		self.localIP = myIp
 		print(self.localIP)
@@ -30,9 +30,9 @@ class nodoN():
 		self.socketNN.bind((self.localIP, self.ORANGE_PORT))
 		self.mapa = {}  # mapa que recibe key como string y una tupla de ip y puerto
 		self.secureUDPBlue = secureUDP(self.localIP, self.BLUE_PORT)
+		input("Presione enter para iniciar proceso.")
 		self.cargarArchivo()
 		self.enviarPaqIniciales(self.localIP)
-		self.listaNaranjas.append(self.localIP)
 		hiloRecvNaranja = Thread(target=self.recibirNaranja, args=())
 		hiloRecvAzul = Thread(target=self.recibirSolicitud, args=())
 		hiloRecvNaranja.start()
@@ -59,22 +59,23 @@ class nodoN():
 
 	#metodo que procesa tokens según su tipo
 	def recibirNaranja(self):
-		#esperar a recibir 5 paquetes
 		while True:
 			try:
 				msg, address = self.socketNN.recvfrom(1024)
-				tipoMensaje = int.from_bytes(msg[0], byteorder='big')
-				if tipoMensaje == TOKEN_INICIAL:
+				tipoMensaje = int(msg[0])
+				if tipoMensaje == self.TOKEN_INICIAL:
+					print("Recibi token inicial")
 					self.procesoInicial(msg)
-				if tipoMensaje == TOKEN_VACIO:
+				if tipoMensaje == self.TOKEN_VACIO:
 					nodoId = self.recibirTokenVacio()
 					if nodoId == -1:
 						self.sendTokenVacio()
 					else:
+						print("Recibi token vacio y asigne a " + nodoId)
 						self.sendTokenOcupado(nodoId)
-				if tipoMensaje == TOKEN_OCUPADO:
+				if tipoMensaje == self.TOKEN_OCUPADO:
 					self.recibirTokenOcupado(msg)
-				if tipoMensaje == TOKEN_COMPLETE:
+				if tipoMensaje == self.TOKEN_COMPLETE:
 					self.enviarPaqComplete()
 			except socket.timeout:
 				if self.ipGenerador == True:	
@@ -82,23 +83,25 @@ class nodoN():
 					self.crearToken()
 
 	def procesoInicial(self, msg):
-		ipNaranja = ip_tuple_to_str(ip_to_int_tuple(msg[1:4]))
-
+		ipNaranja = ip_tuple_to_str(ip_to_int_tuple(msg[1:5]))
+		print("Recibí el token inicial con IP " + ipNaranja)
 		if ipNaranja != self.localIP:
-			listaNaranjas.append(ipNaranja)
-			self.enviarPaqIniciales(ipNaranja)
+			self.listaNaranjas.append(ipNaranja)
+			#self.enviarPaqIniciales(ipNaranja)
 
-		if len(self.listaNaranjas) == 2:
+		if len(self.listaNaranjas) == 1:
 			self.compararIpsNaranjas()
 
 	#metodo que envia la ip del naranja actual para determinar cual será el nodo generador
 	def enviarPaqIniciales(self, ipNaranja):
 		miDireccion = ipNaranja.split(".")
 		msg = (0).to_bytes(1, byteorder="big") + ip_to_bytes(str_ip_to_tuple(ipNaranja))
+		print("Envié el IP " + ipNaranja)
 		self.socketNN.sendto(msg, self.nextOrangeAddress)
 
 	#metodo que compara las ips de los naranjas para determinar cual empieza a con la asignación
 	def compararIpsNaranjas(self):
+		print("IPs listo, voy a comparar")
 		miIp = self.localIP.split(".")
 		for naranja in self.listaNaranjas:
 			lAux = naranja.split(".")
@@ -117,12 +120,6 @@ class nodoN():
 						if int(miIp[3]) < int(lAux[3]):
 							self.ipGenerador = True
 							continue
-						elif int(miIp[3]) == int(lAux[3]):
-							if int(miIp[4]) < int(lAux[4]):
-								self.ipGenerador = True
-						else: 
-							self.ipGenerador = False
-							break
 					else:
 						self.ipGenerador = False
 						break
@@ -133,10 +130,13 @@ class nodoN():
 				self.ipGenerador = False
 				break
 		
+
 		if self.ipGenerador == True:
+			print("Compare y soy nodo generador")
 			self.socketNN.settimeout(60)
 			self.crearToken()
 		else:
+			print("No soy nodo generador")
 			self.socketNN.settimeout(30)
 			#hago asignaciones, mando token ocupado
 
@@ -149,15 +149,15 @@ class nodoN():
 
 	def sendTokenVacio(self):
 		tipoMensaje = (3).to_bytes(1,"big")
-		socketNN.sendto(tipoMensaje, self.nextOrangeAddress)
+		self.socketNN.sendto(tipoMensaje, self.nextOrangeAddress)
 
 	def recibirTokenVacio(self):
-		if(len(cola) != 0):
-			solicitud = cola.pop(0)
+		if(len(self.cola) != 0):
+			solicitud = self.cola.pop(0)
 			nodoId = int(self.getNodoId())
-			actualizarEstructuras(nodoId, solicitud[0], solicitud[1])
+			self.actualizarEstructuras(nodoId, solicitud[0], solicitud[1])
 			nodoIdBytes = nodoId.to_bytes(2,"big")
-			vecinos = listaVecinos(nodoId)
+			vecinos = self.listaVecinos(nodoId)
 			for n in vecinos:
 				if self.mapa[n] == (0,0):
 					vecinoBytes = n.to_bytes(2,"big")
@@ -270,7 +270,6 @@ def main():
 	myIp = input("Digite la IP de esta máquina")
 	ip = input("Digite la IP del siguiente naranja: ")
 	port = input("Digite el puerto del siguiente naranja: ")
-	input("Presione enter para iniciar proceso.")
 	servidor = nodoN(myIp, ip, port)
 	#servidor.recibirSolicitud()
 	#servidor.actualizarEstructuras("9", "1.1.1.1", "5555")

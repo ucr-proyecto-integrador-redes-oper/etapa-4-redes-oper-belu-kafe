@@ -30,8 +30,6 @@ class secureUDP():
 		address = (ip, puerto)
 		msg = (0).to_bytes(1, byteorder="big") + (self.SN).to_bytes(2, byteorder="big") + datos
 		self.SN = (self.SN + 1) % (2**16) #para asignar SN's
-		print(msg)
-		print(address)
 		self.sock.sendto(msg, address)
 		parAM = (address, msg)
 		print("Sent " + str(msg) + " to " + str(address))
