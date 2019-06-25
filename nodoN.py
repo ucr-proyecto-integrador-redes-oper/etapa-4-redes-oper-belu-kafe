@@ -20,7 +20,7 @@ class nodoN():
 		self.localIP = myIp
 		print(self.localIP)
 		self.nextOrangeIp = ip
-		self.nextOrangePort = port
+		self.nextOrangePort = int(port)
 		self.nextOrangeAddress = (self.nextOrangeIp, self.nextOrangePort)
 		self.list = []
 		self.cola = []
@@ -31,10 +31,11 @@ class nodoN():
 		self.mapa = {}  # mapa que recibe key como string y una tupla de ip y puerto
 		self.secureUDPBlue = secureUDP(self.localIP, self.BLUE_PORT)
 		self.cargarArchivo()
-		#self.enviarPaqIniciales(self.localIP)
-		#hiloRecvNaranja = Thread(target=self.recibirNaranja, args=())
+		self.enviarPaqIniciales(self.localIP)
+		self.listaNaranjas.append(self.localIP)
+		hiloRecvNaranja = Thread(target=self.recibirNaranja, args=())
 		hiloRecvAzul = Thread(target=self.recibirSolicitud, args=())
-		#hiloRecvNaranja.start()
+		hiloRecvNaranja.start()
 		hiloRecvAzul.start()
 
 	# Metodo cargar archivo en una lista de listas desde los argumentos
@@ -61,7 +62,7 @@ class nodoN():
 		#esperar a recibir 5 paquetes
 		while True:
 			try:
-				msg, address = socketNN.recvfrom(1024)
+				msg, address = self.socketNN.recvfrom(1024)
 				tipoMensaje = int.from_bytes(msg[0], byteorder='big')
 				if tipoMensaje == TOKEN_INICIAL:
 					self.procesoInicial(msg)
@@ -93,7 +94,7 @@ class nodoN():
 	#metodo que envia la ip del naranja actual para determinar cual será el nodo generador
 	def enviarPaqIniciales(self, ipNaranja):
 		miDireccion = ipNaranja.split(".")
-		msg = (0).to_bytes(1, byteorder="big") + (int(miDireccion[0])).to_bytes(1, byteorder="big") + (int(miDireccion[1])).to_bytes(1, byteorder="big") +(int(miDireccion[2])).to_bytes(1, byteorder="big") + (int(miDireccion[3])).to_bytes(1, byteorder="big")
+		msg = (0).to_bytes(1, byteorder="big") + ip_to_bytes(str_ip_to_tuple(ipNaranja))
 		self.socketNN.sendto(msg, self.nextOrangeAddress)
 
 	#metodo que compara las ips de los naranjas para determinar cual empieza a con la asignación

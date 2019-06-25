@@ -1,4 +1,5 @@
 from clientNode import ClientNode
+from secureUDP import secureUDP
 import sys # Para pasar argumentos
 import re # Para usar RegEx (Expresiones Regulares)
 
@@ -25,4 +26,6 @@ else:
     print("Debe ingresar ip y puerto en los argumentos")
     sys.exit(0)
 
-blue = ClientNode(host, port)
+secure = secureUDP(ip, 1999)
+msg = "Hola"
+secure.send(msg.encode('utf-8'), "10.1.137.164", int(2000))
