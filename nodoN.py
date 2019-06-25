@@ -160,11 +160,11 @@ class nodoN():
 			vecinos = self.listaVecinos(nodoId)
 			for n in vecinos:
 				if self.mapa[n] == (0,0):
-					vecinoBytes = n.to_bytes(2,"big")
+					vecinoBytes = int(n).to_bytes(2,"big")
 					paqueteFinal = nodoIdBytes + vecinoBytes
 					self.secureUDPBlue.send(paqueteFinal, solicitud[0], solicitud[1])
 				else:
-					vecinoBytes = n.to_bytes(2,"big")
+					vecinoBytes = int(n).to_bytes(2,"big")
 					vecinoIP = self.mapa[n][0].to_bytes(4, "big")
 					vecinoPort = self.mapa[n][1].to_bytes(2, "big")
 					paqueteFinal = nodoIdBytes + vecinoBytes + vecinoIP + vecinoPort
@@ -174,7 +174,7 @@ class nodoN():
 			return -1
 
 	#Id=1 token ocupado con solicitud + nodo+ IP azul+ puerto azul
-	def sendTokenOcupado(self, nodoId):
+	def sendTokenOcupado(self, nodoId): 
 		#Si soy el generador, cambio temporalmente el timeout para este método
 		if self.ipGenerador == True:
 			socketNN.settimeout(10)
@@ -247,10 +247,10 @@ class nodoN():
 		vecinos = []
 		indice = 0
 		for reg in self.list:
-			if reg[0] == nodo:
+			if int(reg[0]) == nodo:
 				break
 			indice += 1
-			
+
 		for dato in self.list[indice]:
 			if dato !='' and dato != str(nodo):
 				vecinos.append(dato)
