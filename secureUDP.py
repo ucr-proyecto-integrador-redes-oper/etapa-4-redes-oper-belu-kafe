@@ -30,6 +30,8 @@ class secureUDP():
 		address = (ip, puerto)
 		msg = (0).to_bytes(1, byteorder="big") + (self.SN).to_bytes(2, byteorder="big") + datos
 		self.SN = (self.SN + 1) % (2**16) #para asignar SN's
+		print(msg)
+		print(address)
 		self.sock.sendto(msg, address)
 		parAM = (address, msg)
 		print("Sent " + str(msg) + " to " + str(address))
@@ -74,7 +76,7 @@ class secureUDP():
 				index = 0
 				if received[1][0] == 1: #significa que el mensaje recibido es un ack procedo a buscar en la lista de enviados y borrar
 					SNR =   int.from_bytes([received[1][1], received[1][2]], byteorder='big') #se ocupan locks por acá
-					print("ACK found from " + str(received[0]))
+					print("ACK found from " + str(received[0]) + " RN: " + str(SNR))
 					self.lockSend.acquire()
 					for msj in self.enviados:  #puede que haya una forma más eficiente de hacer esto en vez de recorrer todo
 						SNE =  int.from_bytes([msj[1][1], msj[1][2]], byteorder='big')
@@ -87,9 +89,10 @@ class secureUDP():
 
 				elif received[1][0] == 0:
 					print("Message found from " + str(received[0]))
-					message = bytearray([1, received[1][1], received[1][2]]) #no estoy segura si msg[0] como ya es un byte esto lo acepte 
+					message = bytearray([1, received[1][1], received[1][2]]) #no estoy segura si msg[0] como ya es un byte esto lo acepte
 					self.sock.sendto(message, received[0]) #se envió ack
-					print("ACK sent to " + str(received[0]))
+					SN = int.from_bytes([received[1][1], received[1][2]], byteorder='big')
+					print("ACK sent to " + str(received[0]) + " SN: " + str(SN))
 					self.mensajesaProcesar.append(received[1][3:len(received[1])]) #solo el mensaje util que debe ser procesado
 	##Método que usa la capa superior para obtener el mensaje
 	def getMessage(self):
@@ -97,3 +100,5 @@ class secureUDP():
 			if len(self.mensajesaProcesar) != 0:
 				print("¡Message succesfully received!")
 				return self.mensajesaProcesar.pop(0) #siempre hace un pop del primero y lo borra
+				
+				
