@@ -3,6 +3,9 @@ from Util import str_ip_to_tuple, ip_to_bytes, ip_tuple_to_str, ip_to_int_tuple
 from struct import *
 from secureUDP import secureUDP
 import random
+import sys # Para pasar argumentos
+import re # Para usar RegEx (Expresiones Regulares)
+
 class ClientNode():
 	nodeId = 0
 	neighbors = []
@@ -33,5 +36,32 @@ class ClientNode():
 		print("Request ready: " + str(infoNodo))
 		#print("Recibí respuesta")
 		#msgFromServer = self.UDPClientSocket.recvfrom(1024)
+
+def main():
+	host = ""
+	port = 0
+	if len(sys.argv) > 2:
+		ip = str(sys.argv[1])
+		puerto = str(sys.argv[2])
+		regex = r"\b(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b"
+		x = re.search(regex, ip)
+		try:
+			if ip=="localhost":
+			   host=ip
+			   port=int(puerto)
+			else:
+			   host=ip
+			   port=int(puerto)
+		except:
+			print("Dirección IP Invalida")
+			sys.exit(0)
+	else:
+		print("No ingresó argumentos: ")
+		print("Debe ingresar ip y puerto en los argumentos")
+		sys.exit(0)
+	client = ClientNode(host, port)
+	
+if __name__ == '__main__':
+	main()
 		
 		

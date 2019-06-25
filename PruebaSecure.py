@@ -1,3 +1,4 @@
+from clientNode import ClientNode
 from secureUDP import secureUDP
 import sys # Para pasar argumentos
 import re # Para usar RegEx (Expresiones Regulares)
@@ -26,6 +27,7 @@ else:
     print("Debe ingresar ip y puerto en los argumentos")
     sys.exit(0)
 
+<<<<<<< HEAD:pruebaSecure.py
 secure = secureUDP(ip, int(puerto))
 
 
