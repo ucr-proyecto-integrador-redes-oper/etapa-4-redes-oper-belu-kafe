@@ -75,6 +75,7 @@ class secureUDP():
 				received = self.recibidos.pop(recvIndex)
 				index = 0
 				if received[1][0] == 1: #significa que el mensaje recibido es un ack procedo a buscar en la lista de enviados y borrar
+					print(f"recieve 1 1 {received[1][1:4]}")
 					SNR =   int.from_bytes([received[1][1], received[1][2]], byteorder='big') #se ocupan locks por acá
 					print("ACK found from " + str(received[0]) + " RN: " + str(SNR))
 					self.lockSend.acquire()
@@ -89,7 +90,9 @@ class secureUDP():
 
 				elif received[1][0] == 0:
 					print("Message found from " + str(received[0]))
+					#print(f"recieve 1 1 {received[1][1:4]}")
 					message = bytearray([1, received[1][1], received[1][2]]) #no estoy segura si msg[0] como ya es un byte esto lo acepte
+				
 					self.sock.sendto(message, received[0]) #se envió ack
 					SN = int.from_bytes([received[1][1], received[1][2]], byteorder='big')
 					print("ACK sent to " + str(received[0]) + " SN: " + str(SN))
