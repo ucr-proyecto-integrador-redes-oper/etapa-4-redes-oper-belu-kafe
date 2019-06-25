@@ -27,7 +27,6 @@ else:
     print("Debe ingresar ip y puerto en los argumentos")
     sys.exit(0)
 
-<<<<<<< HEAD:pruebaSecure.py
 secure = secureUDP(ip, int(puerto))
 
 
