@@ -239,7 +239,7 @@ class nodoN():
 			port = int.from_bytes(msg[4:6], byteorder='big')
 			info = ip, port
 			print(info)
-			cola.append(info)
+			self.cola.append(info)
 
 	# metodo que devuelve una lista de los vecinos solicitados
 	def listaVecinos(self, nodo):
