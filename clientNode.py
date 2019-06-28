@@ -19,6 +19,8 @@ class ClientNode():
 		self.vecinos = []
 		hiloConsola = Thread(target=self.consola, args=())
 		hiloConsola.start()
+		hiloRecvAzul = Thread(target=self.receiveAzul, args=())
+		hiloRecvAzul.start()
 		self.run()
 	
 	def run(self):
@@ -49,8 +51,33 @@ class ClientNode():
 				vecinoPort = int.from_bytes(infoNodo[9:11],"big")
 				if self.isRepeated(vecino) == False:
 					self.vecinos.append((vecino, vecinoIP, vecinoPort))
-				#self.helloVecino(vecinoIP, vecinoPort)
+				self.helloVecino(vecinoIP, vecinoPort)
 	
+	def helloVecino(self, vecinoIP, vecinoPort):
+		msgId = (1).to_bytes(1, byteorder="big")
+		nodoId = (self.nodoId).to_bytes(2, byteorder="big") 
+		msgIP = ip_to_bytes(str_ip_to_tuple(self.localIP))
+		msgPort = (self.localPort).to_bytes(2, byteorder="big")
+		msgFinal = (msgId + msgIP + msgPort)
+		print("Enviando " + str(msgFinal))
+		self.secureUDP.send(msgFinal, vecinoIP, self.vecinoPort)
+
+	def receiveAzul(self):
+		while True:
+			msg = self.secureUDP.getMessage()
+			if int(msg[0]) == 1:
+				self.vecinoId = int.from_bytes(infoNodo[1:3], "big")
+				vecinoIP = ip_tuple_to_str(ip_to_int_tuple(infoNodo[5:9]))
+				vecinoPort = int.from_bytes(infoNodo[9:11],"big")
+				print("Actualizando vecino " + vecinoId + " con IP " + vecinoIP + " con puerto " + str(vecinoPort))
+				actualizarVecinos(vecinoId, vecinoIP, vecinoPort)
+
+	def actualizarVecinos(self, vecinoId, vecinoIP, vecinoPort):
+		for vecino in self.vecinos:
+			if vecino[0] == vecinoId:
+				vecino[1] = vecinoIP
+				vecino[2] = vecinoPort
+
 	def isRepeated(self, nodoId):
 		for n in self.vecinos:
 			if n[0] == nodoId:
@@ -61,7 +88,7 @@ class ClientNode():
 		while True:
 			resp = input()
 			if resp == "1":
-				print("Yo soy " + str(self.nodoId) + "con IP " + self.localIP + " y puerto " + str(self.localPort))
+				print("Yo soy " + str(self.nodoId) + " con IP " + self.localIP + " y puerto " + str(self.localPort))
 				for n in self.vecinos:
 					print(n)
 
