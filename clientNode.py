@@ -11,9 +11,8 @@ class ClientNode():
 	neighbors = []
 	localPort = random.randint(1000, 10000)
 	
-	def __init__(self, serverIP, serverPort):
-		self.hostname = socket.gethostname()
-		self.localIP = socket.gethostbyname(self.hostname)
+	def __init__(self, myIp ,serverIP, serverPort):
+		self.localIP = myIp
 		self.serverIP = serverIP
 		self.serverPort = serverPort
 		self.secureUDP = secureUDP(self.localIP, self.localPort)
@@ -62,28 +61,33 @@ class ClientNode():
 		return False
 
 def main():
-	host = ""
+	myIp = ""
+	ip = ""
 	port = 0
 	if len(sys.argv) > 2:
-		ip = str(sys.argv[1])
-		puerto = str(sys.argv[2])
+		myHost = str(sys.argv[1])
+		host = str(sys.argv[2])
+		puerto = str(sys.argv[3])
 		regex = r"\b(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b"
 		x = re.search(regex, ip)
 		try:
-			if ip=="localhost":
-			   host=ip
-			   port=int(puerto)
+			if myHost == "localhost" and host == "localhost":
+				ip = host
+				myIp = myHost
+				port = int(puerto)
 			else:
-			   host=ip
-			   port=int(puerto)
+				ip = host
+				myIp = myHost	
+				port = int(puerto)
 		except:
-			print("Dirección IP Invalida")
+			print("Direcciónes IP Invalidas")
 			sys.exit(0)
 	else:
 		print("No ingresó argumentos: ")
 		print("Debe ingresar ip y puerto en los argumentos")
 		sys.exit(0)
-	client = ClientNode(host, port)
+
+	client = ClientNode(myIp, ip, port)
 	
 if __name__ == '__main__':
 	main()
