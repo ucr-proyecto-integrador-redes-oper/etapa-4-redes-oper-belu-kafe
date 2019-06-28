@@ -89,7 +89,7 @@ class nodoN():
 			self.listaNaranjas.append(ipNaranja)
 			self.enviarPaqIniciales(ipNaranja)
 
-		if len(self.listaNaranjas) == 2:#########################################
+		if len(self.listaNaranjas) == 5:#########################################
 			self.compararIpsNaranjas()
 
 	#metodo que envia la ip del naranja actual para determinar cual será el nodo generador
@@ -163,14 +163,16 @@ class nodoN():
 			vecinos = self.listaVecinos(nodoId)
 			for n in vecinos:
 				if self.mapa[n] == (0,0):
+					msgId = (15).to_bytes(1, "big")
 					vecinoBytes = int(n).to_bytes(2,"big")
-					paqueteFinal = nodoIdBytes + vecinoBytes
+					paqueteFinal = msgId + nodoIdBytes + vecinoBytes
 					self.secureUDPBlue.send(paqueteFinal, solicitud[0], solicitud[1])
 				else:
+					msgId = (16).to_bytes(1, "big")
 					vecinoBytes = int(n).to_bytes(2,"big")
 					vecinoIP = self.mapa[n][0].to_bytes(4, "big")
 					vecinoPort = self.mapa[n][1].to_bytes(2, "big")
-					paqueteFinal = nodoIdBytes + vecinoBytes + vecinoIP + vecinoPort
+					paqueteFinal = msgId + nodoIdBytes + vecinoBytes + vecinoIP + vecinoPort
 					self.secureUDPBlue.send(paqueteFinal, solicitud[0], solicitud[1])
 			return nodoId
 		else:
@@ -239,8 +241,8 @@ class nodoN():
 		while True:
 			msg = self.secureUDPBlue.getMessage()
 			print("Got request!")
-			ip = ip_tuple_to_str(ip_to_int_tuple(msg[0:4]))
-			port = int.from_bytes(msg[4:6], byteorder='big')
+			ip = ip_tuple_to_str(ip_to_int_tuple(msg[1:5]))
+			port = int.from_bytes(msg[5:7], byteorder='big')
 			info = ip, port
 			print(info)
 			self.cola.append(info)

@@ -25,9 +25,10 @@ class ClientNode():
 		self.receiveRequest()
 	
 	def sendRequest(self):
+		msgId = (14).to_bytes(1, byteorder="big")	
 		msgIP = ip_to_bytes(str_ip_to_tuple(self.localIP))
 		msgPort = (self.localPort).to_bytes(2, byteorder="big")
-		msgFinal = (msgIP + msgPort)
+		msgFinal = (msgId + msgIP + msgPort)
 		print("Sending request...")
 		self.secureUDP.send(msgFinal, self.serverIP, self.serverPort)
 		#Debugging splitting(should be on Orange Node)
