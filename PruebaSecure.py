@@ -39,7 +39,7 @@ def send():
 def recieve():
 	while True:
 		msj = secure.getMessage()
-		print("Mensaje REcibido: " +msj)
+		print(f"Mensaje REcibido: {msj}")
 	
 s = threading.Thread(target=send)
 s.start()

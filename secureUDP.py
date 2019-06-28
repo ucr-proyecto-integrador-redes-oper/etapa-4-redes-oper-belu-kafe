@@ -56,7 +56,7 @@ class secureUDP():
 	##Hilo que esta constantemente recibiendo mensajes
 	def receive(self):
 		while True:
-			msg, address = self.sock.recvfrom(1024) #debemos ver tamaño maximo que enviamos
+			msg, address = self.sock.recvfrom(1031) #debemos ver tamaño maximo que enviamos
 			print("Received " + str(msg) + " from " + str(address))
 			parAM = (address, msg)
 			#tomo lock
