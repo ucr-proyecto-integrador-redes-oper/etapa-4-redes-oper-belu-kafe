@@ -60,7 +60,6 @@ class nodoN():
 				msg, address = self.socketNN.recvfrom(1024)
 				tipoMensaje = int(msg[0])
 				if tipoMensaje == self.TOKEN_INICIAL:
-					print("Recibi token inicial")
 					self.procesoInicial(msg)
 				if tipoMensaje == self.TOKEN_VACIO:
 					nodoId = self.recibirTokenVacio()
@@ -85,9 +84,8 @@ class nodoN():
 			self.listaNaranjas.append(ipNaranja)
 			if self.NUM_NARANJAS != 1:
 				self.enviarPaqIniciales(ipNaranja)
-		print(len(self.listaNaranjas)) 
-		if len(self.listaNaranjas) == self.NUM_NARANJAS-1:#########################################
-			self.compararIpsNaranjas()
+			if len(self.listaNaranjas) == self.NUM_NARANJAS-1:#########################################
+				self.compararIpsNaranjas()
 
 	#metodo que envia la ip del naranja actual para determinar cual será el nodo generador
 	def enviarPaqIniciales(self, ipNaranja):
@@ -98,7 +96,6 @@ class nodoN():
 
 	#metodo que compara las ips de los naranjas para determinar cual empieza a con la asignación
 	def compararIpsNaranjas(self):
-		print("IPs listo, voy a comparar")
 		miIp = self.localIP.split(".")
 		for naranja in self.listaNaranjas:
 			lAux = naranja.split(".")
@@ -132,7 +129,7 @@ class nodoN():
 		
 
 		if self.ipGenerador == True:
-			print("Compare y soy nodo generador")
+			print("Soy nodo generador")
 			self.socketNN.settimeout(60)
 			self.crearToken()
 		else:

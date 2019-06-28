@@ -3,6 +3,7 @@ from Util import str_ip_to_tuple, ip_to_bytes, ip_tuple_to_str, ip_to_int_tuple
 from struct import *
 from secureUDP import secureUDP
 import random
+from threading import Lock, Thread
 import sys # Para pasar argumentos
 import re # Para usar RegEx (Expresiones Regulares)
 
@@ -49,7 +50,6 @@ class ClientNode():
 				if self.isRepeated(vecino) == False:
 					self.vecinos.append((vecino, vecinoIP, vecinoPort))
 				#self.helloVecino(vecinoIP, vecinoPort)
-			print(self.vecinos)
 	
 	def isRepeated(self, nodoId):
 		for n in self.vecinos:
