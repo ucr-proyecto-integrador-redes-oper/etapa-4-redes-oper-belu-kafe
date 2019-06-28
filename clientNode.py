@@ -17,6 +17,7 @@ class ClientNode():
 		self.serverIP = serverIP
 		self.serverPort = serverPort
 		self.secureUDP = secureUDP(self.localIP, self.localPort)
+		self.nodoId = 0
 		self.vecinos = []
 		self.run()
 	
@@ -36,7 +37,29 @@ class ClientNode():
 	def receiveRequest(self):
 		while True:
 			infoNodo = self.secureUDP.getMessage()
-			print("Request ready: " + str(infoNodo))
+			msgId = int(infoNodo[0])
+			self.nodoId = int.from_bytes(infoNodo[1:3], "big")
+			print("Nodo asignado: " + str(self.nodoId))
+			if int(msgId) == 15:
+				vecino = int.from_bytes(infoNodo[3:5],"big")
+				print("Vecino " + str(vecino) + " no levantado agregado.")
+				if self.isRepeated(vecino) == False:
+					self.vecinos.append((vecino, 0, 0))
+			elif int(msgId) == 16:
+				vecino = int.from_bytes(infoNodo[3:5],"big")
+				vecinoIP = ip_tuple_to_str(ip_to_int_tuple(infoNodo[5:9]))
+				vecinoPort = int.from_bytes(infoNodo[9:11],"big")
+				print("Vecino " + str(vecino) + " con IP " + vecinoIP + " y puerto " + str(vecinoPort) + " agregado.")
+				if self.isRepeated(vecino) == False:
+					self.vecinos.append((vecino, vecinoIP, vecinoPort))
+				#self.helloVecino(vecinoIP, vecinoPort)
+			print(self.vecinos)
+	
+	def isRepeated(self, nodoId):
+		for n in self.vecinos:
+			if n[0] == nodoId:
+				return True
+		return False
 
 def main():
 	host = ""

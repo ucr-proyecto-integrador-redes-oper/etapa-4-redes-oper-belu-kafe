@@ -5,6 +5,7 @@ import socket
 import csv
 from threading import Lock, Thread
 from time import sleep
+import re # Para usar RegEx (Expresiones Regulares)
 
 class nodoN():
 	
@@ -16,9 +17,9 @@ class nodoN():
 		self.TOKEN_OCUPADO = 1
 		self.TOKEN_COMPLETE = 2
 		self.TOKEN_VACIO = 3
+		self.NUM_NARANJAS = 1
 		self.hostname = socket.gethostname()
 		self.localIP = myIp
-		print(self.localIP)
 		self.nextOrangeIp = ip
 		self.nextOrangePort = int(port)
 		self.nextOrangeAddress = (self.nextOrangeIp, self.nextOrangePort)
@@ -41,12 +42,7 @@ class nodoN():
 	# Metodo cargar archivo en una lista de listas desde los argumentos
 	# y la primera posicion es el nombre del nodo seguido de sus vecinos
 	def cargarArchivo(self):
-		archivo = ""
-		if len(sys.argv) >= 2:
-			archivo = sys.argv[1]
-		else:
-			archivo = "grafo.csv"
-			print("Se usara el nombre predeterminado grafo.csv")
+		archivo = "grafo.csv"
 		with open(archivo) as csvarchivo:			
 			entrada = csv.reader(csvarchivo, delimiter=',')
 			for dato in entrada:
@@ -71,7 +67,7 @@ class nodoN():
 					if nodoId == -1:
 						self.sendTokenVacio()
 					else:
-						print("Recibi token vacio y asigne a " + nodoId)
+						print("Recibi token vacio y asigne a " + str(nodoId))
 						self.sendTokenOcupado(nodoId)
 				if tipoMensaje == self.TOKEN_OCUPADO:
 					self.recibirTokenOcupado(msg)
@@ -85,17 +81,20 @@ class nodoN():
 	def procesoInicial(self, msg):
 		ipNaranja = ip_tuple_to_str(ip_to_int_tuple(msg[1:5]))
 		print("Recibí el token inicial con IP " + ipNaranja)
-		if ipNaranja != self.localIP:
+		if ipNaranja == self.localIP:
 			self.listaNaranjas.append(ipNaranja)
-			self.enviarPaqIniciales(ipNaranja)
+			if self.NUM_NARANJAS != 1:
+				self.enviarPaqIniciales(ipNaranja)
 
-		if len(self.listaNaranjas) == 5:#########################################
+		if len(self.listaNaranjas) == self.NUM_NARANJAS:#########################################
+			print("Vamos a comparar")
 			self.compararIpsNaranjas()
 
 	#metodo que envia la ip del naranja actual para determinar cual será el nodo generador
 	def enviarPaqIniciales(self, ipNaranja):
 		miDireccion = ipNaranja.split(".")
 		msg = (0).to_bytes(1, byteorder="big") + ip_to_bytes(str_ip_to_tuple(ipNaranja))
+		print(sys.getsizeof(msg))
 		print("Envié el IP " + ipNaranja)
 		self.socketNN.sendto(msg, self.nextOrangeAddress)
 
@@ -109,15 +108,15 @@ class nodoN():
 				self.ipGenerador = True
 				continue
 			elif int(miIp[0]) == int(lAux[0]):
-				if int(miIp[1]) < int(lAux[1]):
+				if int(miIp[1]) <= int(lAux[1]):
 					self.ipGenerador = True
 					continue
 				elif int(miIp[1]) == int(lAux[1]):
-					if int(miIp[2]) < int(lAux[2]):
+					if int(miIp[2]) <= int(lAux[2]):
 						self.ipGenerador = True
 						continue
 					elif int(miIp[2]) == int(lAux[2]):
-						if int(miIp[3]) < int(lAux[3]):
+						if int(miIp[3]) <= int(lAux[3]):
 							self.ipGenerador = True
 							continue
 						else:
@@ -159,6 +158,7 @@ class nodoN():
 			solicitud = self.cola.pop(0)
 			nodoId = int(self.getNodoId())
 			self.actualizarEstructuras(nodoId, solicitud[0], solicitud[1])
+			print(self.mapa)
 			nodoIdBytes = nodoId.to_bytes(2,"big")
 			vecinos = self.listaVecinos(nodoId)
 			for n in vecinos:
@@ -170,8 +170,8 @@ class nodoN():
 				else:
 					msgId = (16).to_bytes(1, "big")
 					vecinoBytes = int(n).to_bytes(2,"big")
-					vecinoIP = self.mapa[n][0].to_bytes(4, "big")
-					vecinoPort = self.mapa[n][1].to_bytes(2, "big")
+					vecinoIP = ip_to_bytes(str_ip_to_tuple(self.mapa[str(n)][0]))
+					vecinoPort = self.mapa[str(n)][1].to_bytes(2, "big")
 					paqueteFinal = msgId + nodoIdBytes + vecinoBytes + vecinoIP + vecinoPort
 					self.secureUDPBlue.send(paqueteFinal, solicitud[0], solicitud[1])
 			return nodoId
@@ -182,18 +182,18 @@ class nodoN():
 	def sendTokenOcupado(self, nodoId): 
 		#Si soy el generador, cambio temporalmente el timeout para este método
 		if self.ipGenerador == True:
-			socketNN.settimeout(10)
+			self.socketNN.settimeout(10)
 		recibido = False
 		#Armo el paquete
 		msgId = (1).to_bytes(1, "big")
 		nodoIdBytes = nodoId.to_bytes(2,"big") 
-		ipAzul = ip_to_bytes(str_ip_to_tuple(self.map[nodoId][0]))
-		portAzul = (self.map[nodoId][1]).to_bytes(2, byteorder="big")
+		ipAzul = ip_to_bytes(str_ip_to_tuple(self.mapa[str(nodoId)][0]))
+		portAzul = (self.mapa[str(nodoId)][1]).to_bytes(2, byteorder="big")
 		msgFinal = msgId + nodoIdBytes + ipAzul + portAzul
 		#Mientras no reciba respuesta
 		while not recibido:
 			#Envío el token ocupado
-			self.socketNN.sendto(msgFinal, nextOrangeAddress)
+			self.socketNN.sendto(msgFinal, self.nextOrangeAddress)
 			try:
 				#Intento recibir respuesta
 				resp, address = self.socketNN.recvfrom(1024)
@@ -206,7 +206,7 @@ class nodoN():
 				pass
 		#Si soy el generador, regreso el timeout al tiempo original
 		if self.ipGenerador == True:
-			socketNN.settimeout(60)
+			self.socketNN.settimeout(60)
 
 	def recibirTokenOcupado(self, msg):
 		nodoId = int.from_bytes(msg[1:3], byteorder='big')			
@@ -219,13 +219,13 @@ class nodoN():
 	def enviarPaqComplete(self):
 		#Si soy el generador, cambio temporalmente el timeout para este método
 		if self.ipGenerador == True:
-			socketNN.settimeout(10)
+			self.socketNN.settimeout(10)
 		recibido = False
 		#Armo el paquete
-		msg = (TOKEN_COMPLETE).to_bytes(1, byteorder="big") #+ (int(miDireccion[0])).to_bytes(1, byteorder="big") + (int(miDireccion[1])).to_bytes(1, byteorder="big") +(int(miDireccion[2])).to_bytes(1, byteorder="big") + (int(miDireccion[3])).to_bytes(1, byteorder="big") + (int(ipAzul[0])).to_bytes(1, byteorder="big") + (int(ipAzul[1])).to_bytes(1, byteorder="big") + (int(ipAzul[2])).to_bytes(1, byteorder="big") + (int(ipAzul[3])).to_bytes(1, byteorder="big") + (puertoAzul).to_bytes(1, byteorder="big")
+		msg = (self.TOKEN_COMPLETE).to_bytes(1, byteorder="big") #+ (int(miDireccion[0])).to_bytes(1, byteorder="big") + (int(miDireccion[1])).to_bytes(1, byteorder="big") +(int(miDireccion[2])).to_bytes(1, byteorder="big") + (int(miDireccion[3])).to_bytes(1, byteorder="big") + (int(ipAzul[0])).to_bytes(1, byteorder="big") + (int(ipAzul[1])).to_bytes(1, byteorder="big") + (int(ipAzul[2])).to_bytes(1, byteorder="big") + (int(ipAzul[3])).to_bytes(1, byteorder="big") + (puertoAzul).to_bytes(1, byteorder="big")
 				#Mientras no reciba respuesta
 		while not recibido:
-			socketNN.sendto(msg, (self.nextOrangeIp, self.nextOrangePort))
+			self.socketNN.sendto(msg, (self.nextOrangeIp, self.nextOrangePort))
 			try:
 				resp, address = self.socketNN.recvfrom(1024)
 				recibido = True
@@ -235,15 +235,15 @@ class nodoN():
 				pass
 		#Si soy el generador, regreso el timeout al tiempo original
 		if self.ipGenerador == True:
-			socketNN.settimeout(60)
+			self.socketNN.settimeout(60)
 
 	def recibirSolicitud(self):
 		while True:
 			msg = self.secureUDPBlue.getMessage()
-			print("Got request!")
 			ip = ip_tuple_to_str(ip_to_int_tuple(msg[1:5]))
 			port = int.from_bytes(msg[5:7], byteorder='big')
 			info = ip, port
+			print(msg)
 			print(info)
 			self.cola.append(info)
 
@@ -268,13 +268,36 @@ class nodoN():
 				return x
 
 	def actualizarEstructuras(self, key, ip, puerto):
-		self.mapa[key] = (ip, puerto)
+		self.mapa[str(key)] = (ip, puerto)
 		
 
 def main():
-	myIp = input("Digite la IP de esta máquina")
-	ip = input("Digite la IP del siguiente naranja: ")
-	port = input("Digite el puerto del siguiente naranja: ")
+	myIp = ""
+	ip = ""
+	port = 0
+	if len(sys.argv) > 2:
+		myHost = str(sys.argv[1])
+		host = str(sys.argv[2])
+		puerto = str(sys.argv[3])
+		regex = r"\b(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b"
+		x = re.search(regex, ip)
+		try:
+			if myHost == "localhost" and host == "localhost":
+				ip = host
+				myIp = myHost
+				port = int(puerto)
+			else:
+				ip = host
+				myIp = myHost	
+				port = int(puerto)
+		except:
+			print("Direcciónes IP Invalidas")
+			sys.exit(0)
+	else:
+		print("No ingresó argumentos: ")
+		print("Debe ingresar ip y puerto en los argumentos")
+		sys.exit(0)
+
 	servidor = nodoN(myIp, ip, port)
 	#servidor.recibirSolicitud()
 	#servidor.actualizarEstructuras("9", "1.1.1.1", "5555")
