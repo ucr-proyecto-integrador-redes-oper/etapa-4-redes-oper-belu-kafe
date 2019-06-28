@@ -67,7 +67,6 @@ class nodoN():
 					print("Recibi token inicial")
 					self.procesoInicial(msg)
 				if tipoMensaje == self.TOKEN_VACIO:
-					print("Circulando token vacío")
 					nodoId = self.recibirTokenVacio()
 					if nodoId == -1:
 						self.sendTokenVacio()
@@ -90,7 +89,7 @@ class nodoN():
 			self.listaNaranjas.append(ipNaranja)
 			self.enviarPaqIniciales(ipNaranja)
 
-		if len(self.listaNaranjas) == 3:#########################################
+		if len(self.listaNaranjas) == 2:#########################################
 			self.compararIpsNaranjas()
 
 	#metodo que envia la ip del naranja actual para determinar cual será el nodo generador

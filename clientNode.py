@@ -17,6 +17,7 @@ class ClientNode():
 		self.serverIP = serverIP
 		self.serverPort = serverPort
 		self.secureUDP = secureUDP(self.localIP, self.localPort)
+		self.vecinos = []
 		self.run()
 	
 	def run(self):
@@ -32,10 +33,9 @@ class ClientNode():
 		#Debugging splitting(should be on Orange Node)
 
 	def receiveRequest(self):
-		infoNodo = self.secureUDP.getMessage()
-		print("Request ready: " + str(infoNodo))
-		#print("Recibí respuesta")
-		#msgFromServer = self.UDPClientSocket.recvfrom(1024)
+		while True:
+			infoNodo = self.secureUDP.getMessage()
+			print("Request ready: " + str(infoNodo))
 
 def main():
 	host = ""
