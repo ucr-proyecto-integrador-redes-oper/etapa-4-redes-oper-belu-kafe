@@ -7,17 +7,17 @@ import sys # Para pasar argumentos
 import re # Para usar RegEx (Expresiones Regulares)
 
 class ClientNode():
-	nodeId = 0
-	neighbors = []
-	localPort = random.randint(1000, 10000)
 	
 	def __init__(self, myIp ,serverIP, serverPort):
 		self.localIP = myIp
+		self.localPort = random.randint(10000, 65000)	
 		self.serverIP = serverIP
 		self.serverPort = serverPort
 		self.secureUDP = secureUDP(self.localIP, self.localPort)
 		self.nodoId = 0
 		self.vecinos = []
+		hiloConsola = Thread(target=self.consola, args=())
+		hiloConsola.start()
 		self.run()
 	
 	def run(self):
@@ -38,17 +38,14 @@ class ClientNode():
 			infoNodo = self.secureUDP.getMessage()
 			msgId = int(infoNodo[0])
 			self.nodoId = int.from_bytes(infoNodo[1:3], "big")
-			print("Nodo asignado: " + str(self.nodoId))
 			if int(msgId) == 15:
 				vecino = int.from_bytes(infoNodo[3:5],"big")
-				print("Vecino " + str(vecino) + " no levantado agregado.")
 				if self.isRepeated(vecino) == False:
 					self.vecinos.append((vecino, 0, 0))
 			elif int(msgId) == 16:
 				vecino = int.from_bytes(infoNodo[3:5],"big")
 				vecinoIP = ip_tuple_to_str(ip_to_int_tuple(infoNodo[5:9]))
 				vecinoPort = int.from_bytes(infoNodo[9:11],"big")
-				print("Vecino " + str(vecino) + " con IP " + vecinoIP + " y puerto " + str(vecinoPort) + " agregado.")
 				if self.isRepeated(vecino) == False:
 					self.vecinos.append((vecino, vecinoIP, vecinoPort))
 				#self.helloVecino(vecinoIP, vecinoPort)
@@ -59,6 +56,14 @@ class ClientNode():
 			if n[0] == nodoId:
 				return True
 		return False
+
+	def consola(self):
+		while True:
+			resp = input()
+			if resp == "1":
+				print("Yo soy " + str(self.nodoId))
+				for n in self.vecinos:
+					print(n)
 
 def main():
 	myIp = ""

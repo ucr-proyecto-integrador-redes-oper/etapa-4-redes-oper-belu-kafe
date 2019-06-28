@@ -17,7 +17,7 @@ class nodoN():
 		self.TOKEN_OCUPADO = 1
 		self.TOKEN_COMPLETE = 2
 		self.TOKEN_VACIO = 3
-		self.NUM_NARANJAS = 1
+		self.NUM_NARANJAS = 2
 		self.hostname = socket.gethostname()
 		self.localIP = myIp
 		self.nextOrangeIp = ip
@@ -81,22 +81,20 @@ class nodoN():
 	def procesoInicial(self, msg):
 		ipNaranja = ip_tuple_to_str(ip_to_int_tuple(msg[1:5]))
 		print("Recibí el token inicial con IP " + ipNaranja)
-		if ipNaranja == self.localIP:
+		if ipNaranja != self.localIP:
 			self.listaNaranjas.append(ipNaranja)
 			if self.NUM_NARANJAS != 1:
 				self.enviarPaqIniciales(ipNaranja)
-
-		if len(self.listaNaranjas) == self.NUM_NARANJAS:#########################################
-			print("Vamos a comparar")
+		print(len(self.listaNaranjas)) 
+		if len(self.listaNaranjas) == self.NUM_NARANJAS-1:#########################################
 			self.compararIpsNaranjas()
 
 	#metodo que envia la ip del naranja actual para determinar cual será el nodo generador
 	def enviarPaqIniciales(self, ipNaranja):
 		miDireccion = ipNaranja.split(".")
-		msg = (0).to_bytes(1, byteorder="big") + ip_to_bytes(str_ip_to_tuple(ipNaranja))
-		print(sys.getsizeof(msg))
-		print("Envié el IP " + ipNaranja)
-		self.socketNN.sendto(msg, self.nextOrangeAddress)
+		msg = (0).to_bytes(1, byteorder="big")
+		IP = ip_to_bytes(str_ip_to_tuple(ipNaranja))
+		self.socketNN.sendto(msg + IP, self.nextOrangeAddress)
 
 	#metodo que compara las ips de los naranjas para determinar cual empieza a con la asignación
 	def compararIpsNaranjas(self):
@@ -108,15 +106,15 @@ class nodoN():
 				self.ipGenerador = True
 				continue
 			elif int(miIp[0]) == int(lAux[0]):
-				if int(miIp[1]) <= int(lAux[1]):
+				if int(miIp[1]) < int(lAux[1]):
 					self.ipGenerador = True
 					continue
 				elif int(miIp[1]) == int(lAux[1]):
-					if int(miIp[2]) <= int(lAux[2]):
+					if int(miIp[2]) < int(lAux[2]):
 						self.ipGenerador = True
 						continue
 					elif int(miIp[2]) == int(lAux[2]):
-						if int(miIp[3]) <= int(lAux[3]):
+						if int(miIp[3]) < int(lAux[3]):
 							self.ipGenerador = True
 							continue
 						else:
@@ -298,6 +296,9 @@ def main():
 		print("Debe ingresar ip y puerto en los argumentos")
 		sys.exit(0)
 
+	print("Mi Ip es " + myIp)
+	print("El siguiente IP es " + ip)
+	print("El siguiente puerto es " + str(port))
 	servidor = nodoN(myIp, ip, port)
 	#servidor.recibirSolicitud()
 	#servidor.actualizarEstructuras("9", "1.1.1.1", "5555")
