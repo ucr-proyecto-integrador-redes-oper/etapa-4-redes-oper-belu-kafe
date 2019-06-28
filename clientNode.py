@@ -61,7 +61,7 @@ class ClientNode():
 		while True:
 			resp = input()
 			if resp == "1":
-				print("Yo soy " + str(self.nodoId))
+				print("Yo soy " + str(self.nodoId) + "con IP " + self.localIP + " y puerto " + str(self.localPort))
 				for n in self.vecinos:
 					print(n)
 
