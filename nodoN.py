@@ -283,7 +283,7 @@ class nodoN():
 
         def checkComplete(self):
             while True:
-                if (self.NUM_AZULES == 0 && self.NUM_COMPLETES == 5):
+                if (self.NUM_AZULES == 0 and self.NUM_COMPLETES == 5):
                     readyToJoin()
 
         def readyToJoin(self):
