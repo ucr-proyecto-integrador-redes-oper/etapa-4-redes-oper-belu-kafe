@@ -240,7 +240,7 @@ class nodoN():
                         ip = ip_tuple_to_str(ip_to_int_tuple(msg[1:5]))
                         port = int.from_bytes(msg[5:7], byteorder='big')
                         info = ip, port
-                        if isRepeated(ip, port) == False:
+                        if self.isRepeated(ip, port) == False:
                             self.cola.append(info)
 
 	def isRepeated(self, ip, port):
