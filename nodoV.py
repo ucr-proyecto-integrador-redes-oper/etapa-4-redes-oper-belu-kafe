@@ -13,7 +13,7 @@ class nodoV():
 	# constructor de la clase nodo
 	def __init__(self, myIp, idV):  # constructor
 		self.DEPOSITAR = 0
-		self.BLUE_PORT = 8888
+		self.BLUE_PORT = 0
 		self.GREEN_PORT = 2000
 		self.CHUNKSIZE = 1024
 		self.hostname = socket.gethostname()
@@ -42,6 +42,8 @@ class nodoV():
 		nombreArchivo = input()
 		print("Dijite ip de Azul con el que desea comunicarse: ")
 		direccionIP= input() #Deberia verificarse la direccion con un método de verificar público
+		print("Dijite puerto de Azul con el que desea comunicarse: ")
+		self.BLUE_PORT= input()
 		identificadorChunk = 0
 		archivo = open(nombreArchivo, "r") 
 		filesize = os.path.getsize(nombreArchivo)
