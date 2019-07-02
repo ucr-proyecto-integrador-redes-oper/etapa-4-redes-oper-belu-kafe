@@ -18,6 +18,10 @@ class nodoN():
 		self.TOKEN_COMPLETE = 2
 		self.TOKEN_VACIO = 3
 		self.NUM_NARANJAS = 3
+		self.NUM_NARANJAS = 2
+                self.NUM_AZULES = 15
+                self.JOINTREE = 11
+		self.NUM_COMPLETES = 0
 		self.hostname = socket.gethostname()
 		self.localIP = myIp
 		self.nextOrangeIp = ip
@@ -26,6 +30,7 @@ class nodoN():
 		self.list = []
 		self.cola = []
 		self.listaNaranjas = []
+                self.listaAzules = []
 		self.ipGenerador = False
 		self.socketNN = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		self.socketNN.bind((self.localIP, self.ORANGE_PORT))
@@ -36,8 +41,10 @@ class nodoN():
 		self.enviarPaqIniciales(self.localIP)
 		hiloRecvNaranja = Thread(target=self.recibirNaranja, args=())
 		hiloRecvAzul = Thread(target=self.recibirSolicitud, args=())
+                hiloCheckComplete = Thread(target=self.checkComplete, args=())
 		hiloRecvNaranja.start()
 		hiloRecvAzul.start()
+                hiloCheckComplete.start()
 
 	# Metodo cargar archivo en una lista de listas desde los argumentos
 	# y la primera posicion es el nombre del nodo seguido de sus vecinos
@@ -157,6 +164,8 @@ class nodoN():
 			print(self.mapa)
 			nodoIdBytes = nodoId.to_bytes(2,"big")
 			vecinos = self.listaVecinos(nodoId)
+                        NUM_AZULES -= 1
+                        listaAzules.append(solicitud)
 			for n in vecinos:
 				if self.mapa[n] == (0,0):
 					msgId = (15).to_bytes(1, "big")
@@ -272,6 +281,15 @@ class nodoN():
 
 	def actualizarEstructuras(self, key, ip, puerto):
 		self.mapa[str(key)] = (ip, puerto)
+
+        def checkComplete(self):
+            while True:
+                if (self.NUM_AZULES == 0 and self.NUM_COMPLETES == 5):
+                    readyToJoin()
+
+        def readyToJoin(self):
+                for element in self.listaAzules:
+                    self.secureUDPBlue.send((JOINTREE).to_bytes(1, byteorder='big'), element[0], element[1])
 		
 
 def main():

@@ -77,7 +77,7 @@ class ClientNode():
             elif int(msgId) == self.DADDY:#si recibo un daddy agrego el id del nodo a mi lista de idVecinosArbol
                 self.idVecinosArbol.append(int(infoNodo[1:3]))
             elif int(msgId) == self.STARTJOIN:##Este es el de Berta es un mensaje con solo ese numero que viene de los naranjas a todos los azules que asignó para que comiencen a unirse al grafo, cuando un nodo azul recibe esto pone a correr el hilo joinTree.
-                print("Starting... joinTree")
+                startJoin()
                 
     def joinTree(self): ##envía un mensaje a sus vecinos azules para ver si logra conectarse al arbol de expansión minima(DEBE SER UN HILO) 
         if self.nodoId == 0: #si yo soy el nodo que por defecto ya estoy en el árbol no tengo que intentar unirme
@@ -100,6 +100,11 @@ class ClientNode():
     def daddy(self):#Envio un mensaje para avisarle al nodo que escogí para unirme al arbol de expansión minima
         msg = (self.DADDY).to_bytes(1, byteorder="big") + (self.nodoId).to_bytes(2, byteorder="big")
         self.connected == 1
+
+    def startJoin(self):
+        print("Starting... joinTree")
+        hiloJoin = Thread(target=self.joinTree, args=())
+        hiloJoin.start()
         
         
     def helloVecino(self, vecinoIP, vecinoPort):
