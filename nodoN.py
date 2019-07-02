@@ -33,11 +33,10 @@ class nodoN():
 		self.secureUDPBlue = secureUDP(self.localIP, self.BLUE_PORT)
 		input("Presione enter para iniciar proceso.")
 		self.cargarArchivo()
-		self.socketNN.settimeout(5)
 		self.enviarPaqIniciales(self.localIP)
 		hiloRecvNaranja = Thread(target=self.recibirNaranja, args=())
 		hiloRecvAzul = Thread(target=self.recibirSolicitud, args=())
-		
+		hiloRecvNaranja.start()
 		hiloRecvAzul.start()
 
 	# Metodo cargar archivo en una lista de listas desde los argumentos
@@ -60,6 +59,8 @@ class nodoN():
 			try:
 				msg, address = self.socketNN.recvfrom(1024)
 				tipoMensaje = int(msg[0])
+				if tipoMensaje == self.TOKEN_INICIAL:
+					self.procesoInicial(msg)
 				if tipoMensaje == self.TOKEN_VACIO:
 					nodoId = self.recibirTokenVacio()
 					if nodoId == -1:
@@ -77,7 +78,7 @@ class nodoN():
 					print("Token perdido, creando uno nuevo.")
 					self.crearToken()
 
-	def recibirTokenInicial(self, msg):
+	def procesoInicial(self, msg):
 		ipNaranja = ip_tuple_to_str(ip_to_int_tuple(msg[1:5]))
 		print("Recibí el token inicial con IP " + ipNaranja)
 		if ipNaranja != self.localIP:
@@ -85,22 +86,7 @@ class nodoN():
 			if self.NUM_NARANJAS != 1:
 				self.enviarPaqIniciales(ipNaranja)
 			if len(self.listaNaranjas) == self.NUM_NARANJAS-1:#########################################
-				self.IpsListo = True
 				self.compararIpsNaranjas()
-
-	def procesoInicial(self):
-		while True:
-			try:
-				msg, address = self.socketNN.recvfrom(1024)
-				tipoMensaje = int(msg[0])
-				if tipoMensaje == self.TOKEN_INICIAL:
-					self.recibirTokenInicial(msg)
-			except socket.timeout:
-				if self.ipsListo == True:	
-					break
-				else:
-                                        self.enviarPaqIniciales(self.localIP)
-		hiloRecvNaranja.start()                
 
 	#metodo que envia la ip del naranja actual para determinar cual será el nodo generador
 	def enviarPaqIniciales(self, ipNaranja):
@@ -149,7 +135,7 @@ class nodoN():
 			self.crearToken()
 		else:
 			print("No soy nodo generador")
-			self.socketNN.settimeout(10)
+			self.socketNN.settimeout(30)
 			#hago asignaciones, mando token ocupado
 
 	def crearToken(self):
