@@ -17,7 +17,7 @@ class nodoN():
 		self.TOKEN_OCUPADO = 1
 		self.TOKEN_COMPLETE = 2
 		self.TOKEN_VACIO = 3
-		self.NUM_NARANJAS = 2
+		self.NUM_NARANJAS = 3
 		self.hostname = socket.gethostname()
 		self.localIP = myIp
 		self.nextOrangeIp = ip
@@ -33,10 +33,11 @@ class nodoN():
 		self.secureUDPBlue = secureUDP(self.localIP, self.BLUE_PORT)
 		input("Presione enter para iniciar proceso.")
 		self.cargarArchivo()
+                self.socketNN.settimeout(5)
 		self.enviarPaqIniciales(self.localIP)
 		hiloRecvNaranja = Thread(target=self.recibirNaranja, args=())
 		hiloRecvAzul = Thread(target=self.recibirSolicitud, args=())
-		hiloRecvNaranja.start()
+		
 		hiloRecvAzul.start()
 
 	# Metodo cargar archivo en una lista de listas desde los argumentos
@@ -59,8 +60,6 @@ class nodoN():
 			try:
 				msg, address = self.socketNN.recvfrom(1024)
 				tipoMensaje = int(msg[0])
-				if tipoMensaje == self.TOKEN_INICIAL:
-					self.procesoInicial(msg)
 				if tipoMensaje == self.TOKEN_VACIO:
 					nodoId = self.recibirTokenVacio()
 					if nodoId == -1:
@@ -78,7 +77,7 @@ class nodoN():
 					print("Token perdido, creando uno nuevo.")
 					self.crearToken()
 
-	def procesoInicial(self, msg):
+	def recibirTokenInicial(self, msg):
 		ipNaranja = ip_tuple_to_str(ip_to_int_tuple(msg[1:5]))
 		print("Recibí el token inicial con IP " + ipNaranja)
 		if ipNaranja != self.localIP:
@@ -86,7 +85,22 @@ class nodoN():
 			if self.NUM_NARANJAS != 1:
 				self.enviarPaqIniciales(ipNaranja)
 			if len(self.listaNaranjas) == self.NUM_NARANJAS-1:#########################################
+				self.IpsListo = True
 				self.compararIpsNaranjas()
+
+        def procesoInicial(self):
+		while True:
+                        try:
+				msg, address = self.socketNN.recvfrom(1024)
+                                tipoMensaje = int(msg[0])
+				if tipoMensaje == self.TOKEN_INICIAL:
+					self.recibirTokenInicial(msg)
+			except socket.timeout:
+				if self.ipsListo == True:	
+					break
+                                else:
+                                        self.enviarPaqIniciales(self.localIP)
+                hiloRecvNaranja.start()                
 
 	#metodo que envia la ip del naranja actual para determinar cual será el nodo generador
 	def enviarPaqIniciales(self, ipNaranja):
@@ -135,7 +149,7 @@ class nodoN():
 			self.crearToken()
 		else:
 			print("No soy nodo generador")
-			self.socketNN.settimeout(30)
+			self.socketNN.settimeout(10)
 			#hago asignaciones, mando token ocupado
 
 	def crearToken(self):
@@ -235,14 +249,13 @@ class nodoN():
 			self.socketNN.settimeout(60)
 
 	def recibirSolicitud(self):
-		while True:
-			msg = self.secureUDPBlue.getMessage()
-			ip = ip_tuple_to_str(ip_to_int_tuple(msg[1:5]))
-			port = int.from_bytes(msg[5:7], byteorder='big')
-			info = ip, port
-			print(msg)
-			print(info)
-			self.cola.append(info)
+                while True:
+                        msg = self.secureUDPBlue.getMessage()
+                        ip = ip_tuple_to_str(ip_to_int_tuple(msg[1:5]))
+                        port = int.from_bytes(msg[5:7], byteorder='big')
+                        info = ip, port
+                        if isRepeated(ip, port) == False:
+                            self.cola.append(info)
 
 	def isRepeated(self, ip, port):
 		for x, y in self.mapa.items():
