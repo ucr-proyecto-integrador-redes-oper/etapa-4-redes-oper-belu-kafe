@@ -69,7 +69,8 @@ class nodoN():
 						print("Recibi token vacio y asigne a " + str(nodoId))
 						self.sendTokenOcupado(nodoId)
 				if tipoMensaje == self.TOKEN_OCUPADO:
-					self.recibirTokenOcupado(msg)
+                                        print("Recibi token ocupado.")
+                                        self.recibirTokenOcupado(msg)
 				if tipoMensaje == self.TOKEN_COMPLETE:
 					self.enviarPaqComplete()
 			except socket.timeout:
@@ -207,6 +208,7 @@ class nodoN():
 		nodoId = int.from_bytes(msg[1:3], byteorder='big')			
 		ip = ip_tuple_to_str(ip_to_int_tuple(msg[3:7]))
 		port = int.from_bytes(msg[7:9], byteorder='big')
+		print("Actualizando lista para " + str(nodoId) + " con IP " + ip + " y " + str(port))
 		self.actualizarEstructuras(nodoId, ip, port)
 		self.socketNN.sendto(msg, self.nextOrangeAddress)	
 
@@ -241,6 +243,12 @@ class nodoN():
 			print(msg)
 			print(info)
 			self.cola.append(info)
+
+	def isRepeated(self, ip, port):
+		for x, y in self.mapa.items():
+			if y == (ip, port):
+				return True
+		return False
 
 	# metodo que devuelve una lista de los vecinos solicitados
 	def listaVecinos(self, nodo):

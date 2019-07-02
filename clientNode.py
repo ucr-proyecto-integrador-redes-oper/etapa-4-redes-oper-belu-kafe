@@ -11,6 +11,7 @@ import re # Para usar RegEx (Expresiones Regulares)
 class ClientNode():
 	
     def __init__(self, myIp ,serverIP, serverPort):
+        self.HELLO = 1
         self.JOINTREE = 11
         self.IDO = 12
         self.DADDY = 13 
@@ -24,16 +25,12 @@ class ClientNode():
         self.vecinos = []
         self.connected = 0 # variable que dice si estoy conectado al joinTree
         self.idVecinosArbol = []
+        self.sendRequest()
         hiloConsola = Thread(target=self.consola, args=())
         hiloConsola.start()
-        hiloRecvAzul = Thread(target=self.receiveAzul, args=())
+        hiloRecvAzul = Thread(target=self.receive, args=())
         hiloRecvAzul.start()
-        self.run()
-	
-    def run(self):
-        self.sendRequest()
-        self.receiveRequest()
-	
+        
     def sendRequest(self):
         msgId = (14).to_bytes(1, byteorder="big")	
         msgIP = ip_to_bytes(str_ip_to_tuple(self.localIP))
@@ -43,21 +40,33 @@ class ClientNode():
         self.secureUDP.send(msgFinal, self.serverIP, self.serverPort)
         #Debugging splitting(should be on Orange Node)
 
-    def receiveRequest(self):
+    def receive(self):
         while True:
             infoNodo = self.secureUDP.getMessage()
             msgId = int(infoNodo[0])
-            self.nodoId = int.from_bytes(infoNodo[1:3], "big")
+            if int(msgId) == self.HELLO:
+                vecinoId = int.from_bytes(infoNodo[1:3], "big")
+                vecinoIP = ip_tuple_to_str(ip_to_int_tuple(infoNodo[3:7]))
+                vecinoPort = int.from_bytes(infoNodo[7:9],"big")
+                print("Actualizando vecino " + str(vecinoId) + " con IP " + vecinoIP + " con puerto " + str(vecinoPort))
+                self.actualizarVecinos(vecinoId, vecinoIP, vecinoPort)	    
             if int(msgId) == 15:
+                self.nodoId = int.from_bytes(infoNodo[1:3], "big")
                 vecino = int.from_bytes(infoNodo[3:5],"big")
+                print("Recibí vecino con ID " + str(vecino) + "no levantado.")
                 if self.isRepeated(vecino) == False:
-                    self.vecinos.append((vecino, 0, 0))
+                    vecino = [vecino, 0, 0]
+                    self.vecinos.append(vecino)
             elif int(msgId) == 16:
+                self.nodoId = int.from_bytes(infoNodo[1:3], "big")
                 vecino = int.from_bytes(infoNodo[3:5],"big")
+                print("Recibí vecino con ID " + str(vecino) + "ya levantado.")
                 vecinoIP = ip_tuple_to_str(ip_to_int_tuple(infoNodo[5:9]))
                 vecinoPort = int.from_bytes(infoNodo[9:11],"big")
                 if self.isRepeated(vecino) == False:
-                    self.vecinos.append((vecino, vecinoIP, vecinoPort))
+                    vecino = [vecino, vecinoIP, vecinoPort]
+                    self.vecinos.append(vecino)
+                print("Enviando Hello a " + str(vecino))
                 self.helloVecino(vecinoIP, vecinoPort)
             elif int(msgId) == self.JOINTREE:#si recibo solicitud de unión respondo si estoy en el arbol
                 Ido(int(infoNodo[1:3])) 
@@ -98,19 +107,8 @@ class ClientNode():
         nodoId = (self.nodoId).to_bytes(2, byteorder="big") 
         msgIP = ip_to_bytes(str_ip_to_tuple(self.localIP))
         msgPort = (self.localPort).to_bytes(2, byteorder="big")
-        msgFinal = (msgId + msgIP + msgPort)
-        print("Enviando " + str(msgFinal))
-        self.secureUDP.send(msgFinal, vecinoIP, self.vecinoPort)
-
-    def receiveAzul(self):
-        while True:
-            msg = self.secureUDP.getMessage()
-            if int(msg[0]) == 1:
-                self.vecinoId = int.from_bytes(infoNodo[1:3], "big")
-                vecinoIP = ip_tuple_to_str(ip_to_int_tuple(infoNodo[5:9]))
-                vecinoPort = int.from_bytes(infoNodo[9:11],"big")
-                print("Actualizando vecino " + vecinoId + " con IP " + vecinoIP + " con puerto " + str(vecinoPort))
-                actualizarVecinos(vecinoId, vecinoIP, vecinoPort)
+        msgFinal = (msgId + nodoId + msgIP + msgPort)
+        self.secureUDP.send(msgFinal, vecinoIP, vecinoPort)            
 
     def actualizarVecinos(self, vecinoId, vecinoIP, vecinoPort):
         for vecino in self.vecinos:
