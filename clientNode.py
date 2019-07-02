@@ -78,7 +78,6 @@ class ClientNode():
                 self.idVecinosArbol.append(int(infoNodo[1:3]))
             elif int(msgId) == self.STARTJOIN:##Este es el de Berta es un mensaje con solo ese numero que viene de los naranjas a todos los azules que asignó para que comiencen a unirse al grafo, cuando un nodo azul recibe esto pone a correr el hilo joinTree.
                 startJoin()
-                print("Starting... joinTree")
                 
     def joinTree(self): ##envía un mensaje a sus vecinos azules para ver si logra conectarse al arbol de expansión minima(DEBE SER UN HILO) 
         if self.nodoId == 0: #si yo soy el nodo que por defecto ya estoy en el árbol no tengo que intentar unirme
