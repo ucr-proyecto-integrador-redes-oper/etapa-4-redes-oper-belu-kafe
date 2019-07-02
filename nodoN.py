@@ -17,7 +17,7 @@ class nodoN():
 		self.TOKEN_OCUPADO = 1
 		self.TOKEN_COMPLETE = 2
 		self.TOKEN_VACIO = 3
-		self.NUM_NARANJAS = 3
+		self.NUM_NARANJAS = 2
 		self.hostname = socket.gethostname()
 		self.localIP = myIp
 		self.nextOrangeIp = ip
@@ -33,7 +33,7 @@ class nodoN():
 		self.secureUDPBlue = secureUDP(self.localIP, self.BLUE_PORT)
 		input("Presione enter para iniciar proceso.")
 		self.cargarArchivo()
-                self.socketNN.settimeout(5)
+		self.socketNN.settimeout(5)
 		self.enviarPaqIniciales(self.localIP)
 		hiloRecvNaranja = Thread(target=self.recibirNaranja, args=())
 		hiloRecvAzul = Thread(target=self.recibirSolicitud, args=())
@@ -88,19 +88,19 @@ class nodoN():
 				self.IpsListo = True
 				self.compararIpsNaranjas()
 
-        def procesoInicial(self):
+	def procesoInicial(self):
 		while True:
-                        try:
+			try:
 				msg, address = self.socketNN.recvfrom(1024)
-                                tipoMensaje = int(msg[0])
+				tipoMensaje = int(msg[0])
 				if tipoMensaje == self.TOKEN_INICIAL:
 					self.recibirTokenInicial(msg)
 			except socket.timeout:
 				if self.ipsListo == True:	
 					break
-                                else:
+				else:
                                         self.enviarPaqIniciales(self.localIP)
-                hiloRecvNaranja.start()                
+		hiloRecvNaranja.start()                
 
 	#metodo que envia la ip del naranja actual para determinar cual será el nodo generador
 	def enviarPaqIniciales(self, ipNaranja):
