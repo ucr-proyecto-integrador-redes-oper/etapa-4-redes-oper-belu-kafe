@@ -80,13 +80,17 @@ class ClientNode():
                 print("Enviando Hello a " + str(vecino))
                 self.helloVecino(vecinoIP, vecinoPort)
             elif int(msgId) == self.JOINTREE:#si recibo solicitud de unión respondo si estoy en el arbol
-                self.Ido(int(infoNodo[1:3])) 
+                idSolicitud = int.from_bytes(infoNodo[1:3], "big")
+                self.Ido(idSolicitud) 
             elif int(msgId) == self.IDO:#si recibo un IDO veo si estoy conectado y si no envío un daddy y agrego a mi papa a la lista idVecinosArbol
                  if self.connected == 0:
                     self.daddy()
-                    self.idVecinosArbol.append(int(infoNodo[1:3]))
+                    idPadre= int.from_bytes(infoNodo[1:3], "big")
+                    print("Me he unido al grafo mi ID: " + self.nodoId +" el ID de mi padre: " +  str(idPadre))
+                    self.idVecinosArbol.append(idPadre)
             elif int(msgId) == self.DADDY:#si recibo un daddy agrego el id del nodo a mi lista de idVecinosArbol
-                self.idVecinosArbol.append(int(infoNodo[1:3]))
+                idHijo= int.from_bytes(infoNodo[1:3], "big")
+                self.idVecinosArbol.append(idHijo)
             elif int(msgId) == self.STARTJOIN:##Este es el de Berta es un mensaje con solo ese numero que viene de los naranjas a todos los azules que asignó para que comiencen a unirse al grafo, cuando un nodo azul recibe esto pone a correr el hilo joinTree.
                 self.startJoin()
                 
