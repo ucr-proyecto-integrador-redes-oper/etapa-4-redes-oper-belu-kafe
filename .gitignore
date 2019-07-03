@@ -1,3 +1,5 @@
 .vscode 
 *.out
 *__pycache__
+__pycache__/secureUDP.cpython-37.pyc
+.DS_Store
