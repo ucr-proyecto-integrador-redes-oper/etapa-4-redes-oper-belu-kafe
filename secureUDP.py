@@ -88,11 +88,11 @@ class secureUDP():
 				
 					self.sock.sendto(message, received[0]) #se envió ack
 					SN = int.from_bytes([received[1][1], received[1][2]], byteorder='big')
-					self.mensajesaProcesar.append(received[1][3:len(received[1])]) #solo el mensaje util que debe ser procesado
-	##Método que usa la capa superior para obtener el mensaje
+					self.mensajesaProcesar.append(((received[1][3:len(received[1])]), received[0])) #solo el mensaje util que debe ser procesado
+	##Método que usa la capa superior para obtener el mensaje en mensajes a procesar se encuentra un par con el mensaje y la direccion(ip, puerto) 
 	def getMessage(self):
 		while True:
 			if len(self.mensajesaProcesar) != 0:
-				return self.mensajesaProcesar.pop(0) #siempre hace un pop del primero y lo borra
-				
+				contenido = self.mensajesaProcesar.pop(0) #siempre hace un pop del primero y lo borra
+				return contenido[0], contenido[1]
 				

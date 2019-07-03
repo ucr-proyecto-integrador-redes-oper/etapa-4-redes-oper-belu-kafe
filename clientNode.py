@@ -14,6 +14,8 @@ class ClientNode():
     def __init__(self, myIp ,serverIP, serverPort):
         self.DEPOSITAR = 0
         self.HELLO = 1
+        self.EXIST = 2 #exist solo posee el id de archivo
+        self.REXIST = 3 #respuesta a exist solo posee id de archivo
         self.JOINTREE = 11
         self.IDO = 12
         self.DADDY = 13 
@@ -46,14 +48,16 @@ class ClientNode():
     def receive(self):
         print("mi puerto: " + str(self.localPort))
         while True:
-            infoNodo = self.secureUDP.getMessage()
+            infoNodo, address = self.secureUDP.getMessage()
             msgId = int(infoNodo[0])
             if int(msgId) == self.DEPOSITAR:
-                tamano= len(self.vecinos)-1
-                vecinoEnvio = random.randint(0, tamano )
-                self.secureUDP.send(infoNodo, self.vecinos[vecinoEnvio][1], self.vecinos[vecinoEnvio][2])# envía el mismo mensaje a un vecino random
                 accion = random.randint(0, 100)
-                if accion%2 == 0:
+                if accion < 60:#si accion es par va a enviar y depositar
+                    tamano= len(self.vecinos)-1
+                    vecinoEnvio = random.randint(0, tamano )#envia a un vecino random
+                    self.secureUDP.send(infoNodo, self.vecinos[vecinoEnvio][1], self.vecinos[vecinoEnvio][2])# envía el mismo mensaje a un vecino random
+                    self.depositar(infoNodo)
+                else: 
                     self.depositar(infoNodo)
             elif int(msgId) == self.HELLO:
                 vecinoId = int.from_bytes(infoNodo[1:3], "big")
@@ -93,14 +97,27 @@ class ClientNode():
                 self.idVecinosArbol.append(idHijo)
             elif int(msgId) == self.STARTJOIN:##Este es el de Berta es un mensaje con solo ese numero que viene de los naranjas a todos los azules que asignó para que comiencen a unirse al grafo, cuando un nodo azul recibe esto pone a correr el hilo joinTree.
                 self.startJoin()
-                
+ 
+    def exist(self, mensaje):
+        identArchivo = int.from_bytes(mensaje[1:4], "big") 
+        idnodoFile = self.CARPETA + "/" + str(self.nodoId)
+        direccion = idnodoFile + "/" + str(identArchivo)
+        if os.path.exists(direccion):
+            print("si existe archivo...")
+            return True
+        else:
+            return False
+ 
     def depositar(self, mensaje): ##si tiene que depositar mensaje se va a la carpeta Archivos en esta carpeta abran otras carpetas las cuales se
-        #identifican con el identificador de archivo si la carpeta existe solo añade el nuevo chunk
+        #identifican con el id de nodo, y luego otras con identificador de archivo si la carpeta existe solo añade el nuevo chunk
         #sino existe crea la carpeta y añade el archivo con el chunk
         identArchivo = int.from_bytes(mensaje[1:4], "big") 
         numeroChunk = int.from_bytes(mensaje[4:8], "big") 
-        direccion = self.CARPETA + "/" + str(identArchivo)
-        nombreArchivoNuevo = direccion+ "/" + str(numeroChunk) + ".txt"
+        idnodoFile = self.CARPETA + "/" + str(self.nodoId)
+        if os.path.exists(idnodoFile) == False:
+             os.mkdir(idnodoFile)
+        direccion = idnodoFile + "/" + str(identArchivo)
+        nombreArchivoNuevo = direccion + "/" + str(numeroChunk) + ".txt"
         chunk = mensaje[8:len(mensaje)]
         if os.path.exists(direccion):
             file = open(nombreArchivoNuevo, "w")
