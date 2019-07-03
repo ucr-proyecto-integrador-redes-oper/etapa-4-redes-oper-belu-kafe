@@ -18,7 +18,7 @@ class nodoV():
 		self.CHUNKSIZE = 1024
 		self.hostname = socket.gethostname()
 		self.localIP = myIp
-		self.contArchivos = 0 #es parte del identificador de archivo 2 bytes
+		self.contArchivo = 0 #es parte del identificador de archivo 2 bytes
 		self.identificadorArchivo = 32 # 1 byte por ser el grupo 1 tenemos un rango de identificador de 32 a 63
 		self.idVerde = idV #este se le suma a identificador de archivo
 		self.chunksList = [] 
@@ -43,7 +43,7 @@ class nodoV():
 		print("Dijite ip de Azul con el que desea comunicarse: ")
 		direccionIP= input() #Deberia verificarse la direccion con un método de verificar público
 		print("Dijite puerto de Azul con el que desea comunicarse: ")
-		self.BLUE_PORT= input()
+		self.BLUE_PORT= int(input())
 		identificadorChunk = 0
 		archivo = open(nombreArchivo, "r") 
 		filesize = os.path.getsize(nombreArchivo)
@@ -52,7 +52,7 @@ class nodoV():
 				contenido = archivo.read(self.CHUNKSIZE)
 				filesize -= self.CHUNKSIZE
 				tipo = (self.DEPOSITAR).to_bytes(1, byteorder="big")
-				idArchivo = (self.identificadorArchivo +  self.idVerde).to_bytes(1, byteorder="big") 
+				idArchivo = (self.identificadorArchivo +  self.idVerde).to_bytes(1, byteorder="big") + (self.contArchivo).to_bytes(2, byteorder="big")
 				idChunk = (identificadorChunk).to_bytes(4, byteorder="big")
 				encabezado = tipo + idArchivo + idChunk
 				msg = encabezado + contenido.encode('utf-8')
@@ -63,7 +63,7 @@ class nodoV():
 				contenido = archivo.read(filesize)
 				filesize -= filesize
 				tipo = (self.DEPOSITAR).to_bytes(1, byteorder="big")
-				idArchivo = (self.identificadorArchivo +  self.idVerde).to_bytes(1, byteorder="big") + (self.contArchivo +  self.idVerde).to_bytes(2, byteorder="big")
+				idArchivo = (self.identificadorArchivo +  self.idVerde).to_bytes(1, byteorder="big") + (self.contArchivo).to_bytes(2, byteorder="big")
 				idChunk = (identificadorChunk).to_bytes(4, byteorder="big")
 				encabezado = tipo + idArchivo + idChunk
 				msg = encabezado + contenido.encode('utf-8')
@@ -72,6 +72,7 @@ class nodoV():
 				print(f"{msg}")
 		identArchivo = int.from_bytes(idArchivo, "big") 
 		self.chunksList.append(( identArchivo, identificadorChunk))
+		self.contArchivo += 1
 	
 			
 def verificarIP(host):

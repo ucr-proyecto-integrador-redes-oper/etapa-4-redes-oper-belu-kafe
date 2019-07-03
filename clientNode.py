@@ -7,24 +7,27 @@ from threading import Lock, Thread
 from time import sleep
 import sys # Para pasar argumentos
 import re # Para usar RegEx (Expresiones Regulares)
+import os
 
 class ClientNode():
 	
     def __init__(self, myIp ,serverIP, serverPort):
+        self.DEPOSITAR = 0
         self.HELLO = 1
         self.JOINTREE = 11
         self.IDO = 12
         self.DADDY = 13 
         self.STARTJOIN = 18
+        self.CARPETA = "Archivos"
         self.localIP = myIp
         self.localPort = random.randint(10000, 65000)	
         self.serverIP = serverIP
         self.serverPort = serverPort
         self.secureUDP = secureUDP(self.localIP, self.localPort)
         self.nodoId = 0
-        self.vecinos = []
+        self.vecinos = [] 
         self.connected = 0 # variable que dice si estoy conectado al joinTree
-        self.idVecinosArbol = []
+        self.idVecinosArbol = [] #solo contiene los id se deben buscar en vecinos el ip y puerto correspondientes
         self.sendRequest()
         hiloConsola = Thread(target=self.consola, args=())
         hiloConsola.start()
@@ -41,16 +44,24 @@ class ClientNode():
         #Debugging splitting(should be on Orange Node)
 
     def receive(self):
+        print("mi puerto: " + str(self.localPort))
         while True:
             infoNodo = self.secureUDP.getMessage()
             msgId = int(infoNodo[0])
-            if int(msgId) == self.HELLO:
+            if int(msgId) == self.DEPOSITAR:
+                tamano= len(self.vecinos)-1
+                vecinoEnvio = random.randint(0, tamano )
+                self.secureUDP.send(infoNodo, self.vecinos[vecinoEnvio][1], self.vecinos[vecinoEnvio][2])# envía el mismo mensaje a un vecino random
+                accion = random.randint(0, 100)
+                if accion%2 == 0:
+                    depositar(infoNodo[1:len(infoNodo)])
+            elif int(msgId) == self.HELLO:
                 vecinoId = int.from_bytes(infoNodo[1:3], "big")
                 vecinoIP = ip_tuple_to_str(ip_to_int_tuple(infoNodo[3:7]))
                 vecinoPort = int.from_bytes(infoNodo[7:9],"big")
                 print("Actualizando vecino " + str(vecinoId) + " con IP " + vecinoIP + " con puerto " + str(vecinoPort))
-                self.actualizarVecinos(vecinoId, vecinoIP, vecinoPort)	    
-            if int(msgId) == 15:
+                self.actualizarVecinos(vecinoId, vecinoIP, vecinoPort)	
+            elif int(msgId) == 15:
                 self.nodoId = int.from_bytes(infoNodo[1:3], "big")
                 vecino = int.from_bytes(infoNodo[3:5],"big")
                 print("Recibí vecino con ID " + str(vecino) + "no levantado.")
@@ -78,6 +89,24 @@ class ClientNode():
                 self.idVecinosArbol.append(int(infoNodo[1:3]))
             elif int(msgId) == self.STARTJOIN:##Este es el de Berta es un mensaje con solo ese numero que viene de los naranjas a todos los azules que asignó para que comiencen a unirse al grafo, cuando un nodo azul recibe esto pone a correr el hilo joinTree.
                 startJoin()
+                
+    def depositar(mensaje):
+        identArchivo = int.from_bytes(mensaje[0:3], "big") 
+        numeroChunk = int.from_bytes(mensaje[3:7], "big") 
+        direccion = CARPETA + str(identArchivo)
+        nombreArchivoNuevo = direccion + str(numeroChunk)
+        chunk = mensaje[7:len(mensaje)]
+        if os.path.exists(direccion):
+            file = open(nombreArchivoNuevo, "w")
+            file.write(chunk.decode('utf-8'))
+            file.close()
+        else:
+            os.mkdir(direccion)
+            file = open(nombreArchivoNuevo, "w")
+            file.write(chunk.decode('utf-8'))
+            file.close()
+                
+            
                 
     def joinTree(self): ##envía un mensaje a sus vecinos azules para ver si logra conectarse al arbol de expansión minima(DEBE SER UN HILO) 
         if self.nodoId == 0: #si yo soy el nodo que por defecto ya estoy en el árbol no tengo que intentar unirme
