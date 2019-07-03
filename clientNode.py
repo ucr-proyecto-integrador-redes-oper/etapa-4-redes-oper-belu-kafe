@@ -54,7 +54,7 @@ class ClientNode():
                 self.secureUDP.send(infoNodo, self.vecinos[vecinoEnvio][1], self.vecinos[vecinoEnvio][2])# envía el mismo mensaje a un vecino random
                 accion = random.randint(0, 100)
                 if accion%2 == 0:
-                    depositar(infoNodo[1:len(infoNodo)])
+                    self.depositar(infoNodo)
             elif int(msgId) == self.HELLO:
                 vecinoId = int.from_bytes(infoNodo[1:3], "big")
                 vecinoIP = ip_tuple_to_str(ip_to_int_tuple(infoNodo[3:7]))
@@ -80,22 +80,24 @@ class ClientNode():
                 print("Enviando Hello a " + str(vecino))
                 self.helloVecino(vecinoIP, vecinoPort)
             elif int(msgId) == self.JOINTREE:#si recibo solicitud de unión respondo si estoy en el arbol
-                Ido(int(infoNodo[1:3])) 
+                self.Ido(int(infoNodo[1:3])) 
             elif int(msgId) == self.IDO:#si recibo un IDO veo si estoy conectado y si no envío un daddy y agrego a mi papa a la lista idVecinosArbol
                  if self.connected == 0:
-                    daddy()
+                    self.daddy()
                     self.idVecinosArbol.append(int(infoNodo[1:3]))
             elif int(msgId) == self.DADDY:#si recibo un daddy agrego el id del nodo a mi lista de idVecinosArbol
                 self.idVecinosArbol.append(int(infoNodo[1:3]))
             elif int(msgId) == self.STARTJOIN:##Este es el de Berta es un mensaje con solo ese numero que viene de los naranjas a todos los azules que asignó para que comiencen a unirse al grafo, cuando un nodo azul recibe esto pone a correr el hilo joinTree.
-                startJoin()
+                self.startJoin()
                 
-    def depositar(mensaje):
-        identArchivo = int.from_bytes(mensaje[0:3], "big") 
-        numeroChunk = int.from_bytes(mensaje[3:7], "big") 
-        direccion = CARPETA + str(identArchivo)
-        nombreArchivoNuevo = direccion + str(numeroChunk)
-        chunk = mensaje[7:len(mensaje)]
+    def depositar(self, mensaje): ##si tiene que depositar mensaje se va a la carpeta Archivos en esta carpeta abran otras carpetas las cuales se
+        #identifican con el identificador de archivo si la carpeta existe solo añade el nuevo chunk
+        #sino existe crea la carpeta y añade el archivo con el chunk
+        identArchivo = int.from_bytes(mensaje[1:4], "big") 
+        numeroChunk = int.from_bytes(mensaje[4:8], "big") 
+        direccion = self.CARPETA + "/" + str(identArchivo)
+        nombreArchivoNuevo = direccion+ "/" + str(numeroChunk) + ".txt"
+        chunk = mensaje[8:len(mensaje)]
         if os.path.exists(direccion):
             file = open(nombreArchivoNuevo, "w")
             file.write(chunk.decode('utf-8'))
@@ -105,8 +107,6 @@ class ClientNode():
             file = open(nombreArchivoNuevo, "w")
             file.write(chunk.decode('utf-8'))
             file.close()
-                
-            
                 
     def joinTree(self): ##envía un mensaje a sus vecinos azules para ver si logra conectarse al arbol de expansión minima(DEBE SER UN HILO) 
         if self.nodoId == 0: #si yo soy el nodo que por defecto ya estoy en el árbol no tengo que intentar unirme
