@@ -20,7 +20,7 @@ class nodoN():
 		self.NUM_NARANJAS = 3
 		self.NUM_NARANJAS = 2
                 self.NUM_AZULES = 15
-                self.JOINTREE = 11
+                self.READYTOJOIN = 17
 		self.NUM_COMPLETES = 0
 		self.hostname = socket.gethostname()
 		self.localIP = myIp
@@ -288,7 +288,7 @@ class nodoN():
 
         def readyToJoin(self):
                 for element in self.listaAzules:
-                    self.secureUDPBlue.send((JOINTREE).to_bytes(1, byteorder='big'), element[0], element[1])
+                    self.secureUDPBlue.send((READYTOJOIN).to_bytes(1, byteorder='big'), element[0], element[1])
 		
 
 def main():
