@@ -9,7 +9,7 @@ import re # Para usar RegEx (Expresiones Regulares)
 import os
 
 class nodoV():
-	
+
 	# constructor de la clase nodo
     def __init__(self, myIp, idV):  # constructor
         self.DEPOSITAR = 0
@@ -21,9 +21,9 @@ class nodoV():
         self.contArchivo = 0 #es parte del identificador de archivo 2 bytes
         self.identificadorArchivo = 32 # 1 byte por ser el grupo 1 tenemos un rango de identificador de 32 a 63
         self.idVerde = idV #este se le suma a identificador de archivo
-        self.chunksList = [] 
+        self.chunksList = []
         self.secureUDPGREEN = secureUDP(self.localIP, self.GREEN_PORT)
-    
+
 
 
     def menu(self):
@@ -41,9 +41,19 @@ class nodoV():
             opcion = int(input())
             if opcion == 1:
                 self.depositar()
+            elif opcion == 2:
+                self.obtener()
+            elif opcion == 3:
+                self.existe()
+            elif opcion == 4:
+                self.completo()
+            elif opcion == 5:
+                self.localizar()
+            elif opcion == 6:
+                self.eliminar()
             elif opcion == 0:
                 sys.exit(0)
-        
+
 #dado un archivo debe dividirlo en tamaños de 1024bytes, añadir encabezado identificadorArchivo/idchunk
 #idchunk debe crearse cada vez acá comenzando en 0
     def depositar(self):
@@ -54,7 +64,7 @@ class nodoV():
         print("Dijite puerto de Azul con el que desea comunicarse: ")
         self.BLUE_PORT= int(input())
         identificadorChunk = 0
-        archivo = open(nombreArchivo, "r") 
+        archivo = open(nombreArchivo, "r")
         filesize = os.path.getsize(nombreArchivo)
         while filesize > 0:
             if filesize >= self.CHUNKSIZE:
@@ -68,7 +78,7 @@ class nodoV():
                 self.secureUDPGREEN.send(msg, direccionIP, self.BLUE_PORT)
                 identificadorChunk += 1
                 print(f"{msg}")
-            else: 
+            else:
                 contenido = archivo.read(filesize)
                 filesize -= filesize
                 tipo = (self.DEPOSITAR).to_bytes(1, byteorder="big")
@@ -79,38 +89,52 @@ class nodoV():
                 self.secureUDPGREEN.send(msg, direccionIP, self.BLUE_PORT)
                 identificadorChunk += 1
                 print(f"{msg}")
-        identArchivo = int.from_bytes(idArchivo, "big") 
+        identArchivo = int.from_bytes(idArchivo, "big")
         self.chunksList.append(( identArchivo, identificadorChunk))
         self.contArchivo += 1
         return 0
-	
-			
-def verificarIP(host):
-    regex = r"\b(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b"
-    x = re.search(regex, host)
-    try:
-        if host == "localhost":
-            print("verificando direccion.... direccion ip correcta")
-        else:
-            print("verificando direccion.... direccion ip correcta")	
-    except:
-        print("Dirección IP Invalida")
-        sys.exit(0)
-	
-	
+
+    def obtener(self):
+        pass
+
+
+    def existe(self):
+        pass
+
+
+    def completo(self):
+        pass
+
+
+    def localizar(self):
+        pass
+
+
+    def eliminar(self):
+        pass
+
+    def verificarIP(host):
+        regex = r"\b(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b"
+        x = re.search(regex, host)
+        try:
+            if host == "localhost":
+                print("Verificando direccion.... direccion ip correcta")
+            else:
+                print("Verificando direccion.... direccion ip correcta")
+        except:
+            print("Dirección IP Inválida")
+            sys.exit(0)
 
 def main():
-    print("ingrese la ip de esta máquina: ")
+    print("Ingrese la IP de esta máquina: ")
     myHost = input()
     verificarIP(myHost)
-    print("Ingrese el numero de verde: ") #id de verde
+    print("Ingrese el número de verde: ") #id de verde
     idVerde = int(input())
-    print("Mi Ip es " + myHost)
+    print("Mi IP es: " + myHost)
     verde = nodoV(myHost, idVerde)
     verde.menu()
 
-    
+
 if __name__ == '__main__':
 	main()
-
-
