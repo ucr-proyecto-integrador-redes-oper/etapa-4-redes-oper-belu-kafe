@@ -19,7 +19,7 @@ class ClientNode():
         self.JOINTREE = 11
         self.IDO = 12
         self.DADDY = 13 
-        self.STARTJOIN = 18
+        self.STARTJOIN = 17
         self.CARPETA = "Archivos"
         self.localIP = myIp
         self.localPort = random.randint(10000, 65000)	
@@ -95,7 +95,7 @@ class ClientNode():
             elif int(msgId) == self.DADDY:#si recibo un daddy agrego el id del nodo a mi lista de idVecinosArbol
                 idHijo= int.from_bytes(infoNodo[1:3], "big")
                 self.idVecinosArbol.append(idHijo)
-            elif int(msgId) == self.STARTJOIN:##Este es el de Berta es un mensaje con solo ese numero que viene de los naranjas a todos los azules que asignó para que comiencen a unirse al grafo, cuando un nodo azul recibe esto pone a correr el hilo joinTree.
+            elif int(msgId) == self.STARTJOIN:##un mensaje con solo ese numero que viene de los naranjas a todos los azules que asignó para que comiencen a unirse al grafo, cuando un nodo azul recibe esto pone a correr el hilo joinTree.
                 self.startJoin()
  
     def exist(self, mensaje):
