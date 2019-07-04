@@ -193,6 +193,7 @@ class ClientNode():
 
     def completo(self, idArchivo):
 		pass
+		#Como sabe el azul la cantidad de chunks que tiene un archivo 
 
 def main():
     myIp = ""
