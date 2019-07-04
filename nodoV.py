@@ -13,6 +13,11 @@ class nodoV():
 	# constructor de la clase nodo
     def __init__(self, myIp, idV):  # constructor
         self.DEPOSITAR = 0
+        self.EXISTE = 2
+        self.COMPLETO = 4
+        self.OBTENER = 6 #Get
+        self.LOCALIZAR = 8
+        sel.ELIMINAR = 10
         self.BLUE_PORT = 0
         self.GREEN_PORT = 2000
         self.CHUNKSIZE = 1024
@@ -57,9 +62,9 @@ class nodoV():
 #dado un archivo debe dividirlo en tamaños de 1024bytes, añadir encabezado identificadorArchivo/idchunk
 #idchunk debe crearse cada vez acá comenzando en 0
     def depositar(self):
-        print("dijite la direccion del archivo que desea depositar: ")
+        print("Dijite la dirección del archivo que desea depositar: ")
         nombreArchivo = input()
-        print("Dijite ip de Azul con el que desea comunicarse: ")
+        print("Dijite IP del Azul con el que desea comunicarse: ")
         direccionIP= input() #Deberia verificarse la direccion con un método de verificar público
         print("Dijite puerto de Azul con el que desea comunicarse: ")
         self.BLUE_PORT= int(input())
@@ -103,7 +108,16 @@ class nodoV():
 
 
     def completo(self):
-        pass
+        print("Dijite el ID del archivo que quiere consultar: ")
+        idArchivo = input()
+        print("Dijite IP del Azul con el que desea comunicarse: ")
+        direccionIP= input() #Deberia verificarse la direccion con un método de verificar público
+        print("Dijite puerto de Azul con el que desea comunicarse: ")
+        self.BLUE_PORT= int(input())
+        tipo = (self.COMPLETO).to_bytes(1, byteorder="big")
+        fileID = (idArchivo).to_bytes(2, byteorder="big") #Preguntar a Kathy si el id del archivo es del 32-63 o 32-63+idV
+        msg = tipo + fileID
+        self.secureUDPGREEN.send(msg, direccionIP, self.BLUE_PORT)
 
 
     def localizar(self):

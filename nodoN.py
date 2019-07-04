@@ -8,7 +8,7 @@ from time import sleep
 import re # Para usar RegEx (Expresiones Regulares)
 
 class nodoN():
-	
+
 	# constructor de la clase nodo
 	def __init__(self, myIp ,ip, port):  # constructor
 		self.ORANGE_PORT = 9999
@@ -50,7 +50,7 @@ class nodoN():
 	# y la primera posicion es el nombre del nodo seguido de sus vecinos
 	def cargarArchivo(self):
 		archivo = "grafo.csv"
-		with open(archivo) as csvarchivo:			
+		with open(archivo) as csvarchivo:
 			entrada = csv.reader(csvarchivo, delimiter=',')
 			for dato in entrada:
 				self.mapa[str(dato[0])] = (0,0) #Se agregan nodos al mapa, con tupla vacia
@@ -83,7 +83,7 @@ class nodoN():
 				if self.NUM_AZULES == 0: #Si ya asigné todos mis azules
 					self.enviarPaqComplete()
 			except socket.timeout:
-				if self.ipGenerador == True:	
+				if self.ipGenerador == True:
 					print("Token perdido, creando uno nuevo.")
 					self.crearToken()
 
@@ -136,7 +136,7 @@ class nodoN():
 			else:
 				self.ipGenerador = False
 				break
-		
+
 
 		if self.ipGenerador == True:
 			print("Soy nodo generador")
@@ -186,14 +186,14 @@ class nodoN():
 			return -1
 
 	#Id=1 token ocupado con solicitud + nodo+ IP azul+ puerto azul
-	def sendTokenOcupado(self, nodoId): 
+	def sendTokenOcupado(self, nodoId):
 		#Si soy el generador, cambio temporalmente el timeout para este método
 		if self.ipGenerador == True:
 			self.socketNN.settimeout(10)
 		recibido = False
 		#Armo el paquete
 		msgId = (1).to_bytes(1, "big")
-		nodoIdBytes = nodoId.to_bytes(2,"big") 
+		nodoIdBytes = nodoId.to_bytes(2,"big")
 		ipAzul = ip_to_bytes(str_ip_to_tuple(self.mapa[str(nodoId)][0]))
 		portAzul = (self.mapa[str(nodoId)][1]).to_bytes(2, byteorder="big")
 		msgFinal = msgId + nodoIdBytes + ipAzul + portAzul
@@ -216,12 +216,12 @@ class nodoN():
 			self.socketNN.settimeout(60)
 
 	def recibirTokenOcupado(self, msg):
-		nodoId = int.from_bytes(msg[1:3], byteorder='big')			
+		nodoId = int.from_bytes(msg[1:3], byteorder='big')
 		ip = ip_tuple_to_str(ip_to_int_tuple(msg[3:7]))
 		port = int.from_bytes(msg[7:9], byteorder='big')
 		print("Actualizando lista para " + str(nodoId) + " con IP " + ip + " y " + str(port))
 		self.actualizarEstructuras(nodoId, ip, port)
-		self.socketNN.sendto(msg, self.nextOrangeAddress)	
+		self.socketNN.sendto(msg, self.nextOrangeAddress)
 
 	#metodo que envía el paquete Complete entre los demás naranjas
 	def enviarPaqComplete(self):
@@ -273,7 +273,7 @@ class nodoN():
 			if dato !='' and dato != str(nodo):
 				vecinos.append(dato)
 		#print(vecinos)
-		return vecinos		
+		return vecinos
 
 	def getNodoId(self):
 		for x, y in self.mapa.items():
@@ -283,15 +283,15 @@ class nodoN():
 	def actualizarEstructuras(self, key, ip, puerto):
 		self.mapa[str(key)] = (ip, puerto)
 
-		def checkComplete(self):
-			while True:
-				if (self.NUM_AZULES == 0 and self.NUM_COMPLETES == 5):
-					readyToJoin()
+	def checkComplete(self):
+		while True:
+			if (self.NUM_AZULES == 0 and self.NUM_COMPLETES == 5):
+				readyToJoin()
 
-		def readyToJoin(self):
-				for element in self.listaAzules:
-					self.secureUDPBlue.send((READYTOJOIN).to_bytes(1, byteorder='big'), element[0], element[1])
-		
+	def readyToJoin(self):
+			for element in self.listaAzules:
+				self.secureUDPBlue.send((READYTOJOIN).to_bytes(1, byteorder='big'), element[0], element[1])
+
 
 def main():
 	myIp = ""
@@ -310,7 +310,7 @@ def main():
 				port = int(puerto)
 			else:
 				ip = host
-				myIp = myHost	
+				myIp = myHost
 				port = int(puerto)
 		except:
 			print("Direcciónes IP Invalidas")
@@ -329,8 +329,6 @@ def main():
 	#servidor.enviarPaqIniciales("127.0.1.1")
 	# servidor.listaNaranjas = ["127.3.5.100", "127.0.1.2", "127.0.1.5"]
 	# servidor.compararIpsNaranjas()
-	
+
 if __name__ == '__main__':
 	main()
-
-
