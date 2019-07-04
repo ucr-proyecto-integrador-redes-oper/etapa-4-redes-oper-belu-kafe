@@ -19,8 +19,8 @@ class nodoN():
 		self.TOKEN_VACIO = 3
 		self.NUM_NARANJAS = 3
 		self.NUM_NARANJAS = 2
-                self.NUM_AZULES = 15
-                self.READYTOJOIN = 17
+		self.NUM_AZULES = 15
+		self.READYTOJOIN = 17
 		self.NUM_COMPLETES = 0
 		self.hostname = socket.gethostname()
 		self.localIP = myIp
@@ -30,7 +30,7 @@ class nodoN():
 		self.list = []
 		self.cola = []
 		self.listaNaranjas = []
-                self.listaAzules = []
+		self.listaAzules = []
 		self.ipGenerador = False
 		self.socketNN = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		self.socketNN.bind((self.localIP, self.ORANGE_PORT))
@@ -41,10 +41,10 @@ class nodoN():
 		self.enviarPaqIniciales(self.localIP)
 		hiloRecvNaranja = Thread(target=self.recibirNaranja, args=())
 		hiloRecvAzul = Thread(target=self.recibirSolicitud, args=())
-                hiloCheckComplete = Thread(target=self.checkComplete, args=())
+		hiloCheckComplete = Thread(target=self.checkComplete, args=())
 		hiloRecvNaranja.start()
 		hiloRecvAzul.start()
-                hiloCheckComplete.start()
+		hiloCheckComplete.start()
 
 	# Metodo cargar archivo en una lista de listas desde los argumentos
 	# y la primera posicion es el nombre del nodo seguido de sus vecinos
@@ -76,9 +76,11 @@ class nodoN():
 						print("Recibi token vacio y asigne a " + str(nodoId))
 						self.sendTokenOcupado(nodoId)
 				if tipoMensaje == self.TOKEN_OCUPADO:
-                                        print("Recibi token ocupado.")
-                                        self.recibirTokenOcupado(msg)
+					print("Recibi token ocupado.")
+					self.recibirTokenOcupado(msg)
 				if tipoMensaje == self.TOKEN_COMPLETE:
+					self.NUM_COMPLETES += 1
+				if self.NUM_AZULES == 0: #Si ya asigné todos mis azules
 					self.enviarPaqComplete()
 			except socket.timeout:
 				if self.ipGenerador == True:	
@@ -92,7 +94,7 @@ class nodoN():
 			self.listaNaranjas.append(ipNaranja)
 			if self.NUM_NARANJAS != 1:
 				self.enviarPaqIniciales(ipNaranja)
-			if len(self.listaNaranjas) == self.NUM_NARANJAS-1:#########################################
+			if len(self.listaNaranjas) == self.NUM_NARANJAS-1:
 				self.compararIpsNaranjas()
 
 	#metodo que envia la ip del naranja actual para determinar cual será el nodo generador
@@ -164,8 +166,8 @@ class nodoN():
 			print(self.mapa)
 			nodoIdBytes = nodoId.to_bytes(2,"big")
 			vecinos = self.listaVecinos(nodoId)
-                        NUM_AZULES -= 1
-                        listaAzules.append(solicitud)
+			NUM_AZULES -= 1
+			listaAzules.append(solicitud)
 			for n in vecinos:
 				if self.mapa[n] == (0,0):
 					msgId = (15).to_bytes(1, "big")
@@ -228,7 +230,7 @@ class nodoN():
 			self.socketNN.settimeout(10)
 		recibido = False
 		#Armo el paquete
-		msg = (self.TOKEN_COMPLETE).to_bytes(1, byteorder="big") #+ (int(miDireccion[0])).to_bytes(1, byteorder="big") + (int(miDireccion[1])).to_bytes(1, byteorder="big") +(int(miDireccion[2])).to_bytes(1, byteorder="big") + (int(miDireccion[3])).to_bytes(1, byteorder="big") + (int(ipAzul[0])).to_bytes(1, byteorder="big") + (int(ipAzul[1])).to_bytes(1, byteorder="big") + (int(ipAzul[2])).to_bytes(1, byteorder="big") + (int(ipAzul[3])).to_bytes(1, byteorder="big") + (puertoAzul).to_bytes(1, byteorder="big")
+		msg = (self.TOKEN_COMPLETE).to_bytes(1, byteorder="big")
 				#Mientras no reciba respuesta
 		while not recibido:
 			self.socketNN.sendto(msg, (self.nextOrangeIp, self.nextOrangePort))
@@ -244,13 +246,13 @@ class nodoN():
 			self.socketNN.settimeout(60)
 
 	def recibirSolicitud(self):
-                while True:
-                        msg = self.secureUDPBlue.getMessage()
-                        ip = ip_tuple_to_str(ip_to_int_tuple(msg[1:5]))
-                        port = int.from_bytes(msg[5:7], byteorder='big')
-                        info = ip, port
-                        if self.isRepeated(ip, port) == False:
-                            self.cola.append(info)
+				while True:
+						msg = self.secureUDPBlue.getMessage()
+						ip = ip_tuple_to_str(ip_to_int_tuple(msg[1:5]))
+						port = int.from_bytes(msg[5:7], byteorder='big')
+						info = ip, port
+						if self.isRepeated(ip, port) == False:
+							self.cola.append(info)
 
 	def isRepeated(self, ip, port):
 		for x, y in self.mapa.items():
@@ -281,14 +283,14 @@ class nodoN():
 	def actualizarEstructuras(self, key, ip, puerto):
 		self.mapa[str(key)] = (ip, puerto)
 
-        def checkComplete(self):
-            while True:
-                if (self.NUM_AZULES == 0 and self.NUM_COMPLETES == 5):
-                    readyToJoin()
+		def checkComplete(self):
+			while True:
+				if (self.NUM_AZULES == 0 and self.NUM_COMPLETES == 5):
+					readyToJoin()
 
-        def readyToJoin(self):
-                for element in self.listaAzules:
-                    self.secureUDPBlue.send((READYTOJOIN).to_bytes(1, byteorder='big'), element[0], element[1])
+		def readyToJoin(self):
+				for element in self.listaAzules:
+					self.secureUDPBlue.send((READYTOJOIN).to_bytes(1, byteorder='big'), element[0], element[1])
 		
 
 def main():
