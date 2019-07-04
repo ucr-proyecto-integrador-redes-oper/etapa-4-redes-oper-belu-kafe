@@ -99,7 +99,7 @@ class nodoV():
         self.contArchivo += 1
         return 0
 
-    def obtener(self):
+    def obtener(self):#Debe buscar un archivo en el grafo y rearmarlo, dar algún tipo de referencia para el archivo, es como bajar  un archivo del sistema
         pass
 
 
