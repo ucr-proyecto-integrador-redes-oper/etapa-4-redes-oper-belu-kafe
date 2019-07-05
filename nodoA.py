@@ -144,7 +144,9 @@ class ClientNode():
 			nodeId = (self.nodoId).to_bytes(2, byteorder="big")
 			msgFinal = (msgId + nodeId)
 			for vecino in self.vecinos :
-				self.secureUDP.send(msgFinal, vecino[1], int(vecino[2]))
+				print("vecino 1" + str(vecino[1]))
+				print("vecino 2" + str(vecino[2]))
+				self.secureUDP.send(msgFinal, str(vecino[1]), int(vecino[2]))
 			sleep(5)
 
 	def Ido(self, Idnodo): #se envía mensaje si formo parte del árbol
@@ -152,7 +154,7 @@ class ClientNode():
 			msg = (self.IDO).to_bytes(1, byteorder="big") + (self.nodoId).to_bytes(2, byteorder="big")
 			for elemento in self.vecinos:
 				if elemento[0] == Idnodo :
-					self.secureUDP.send(msg, elemento[1], int(elemento[2])) #envia un msj de IDO a otro azul
+					self.secureUDP.send(msg, str(elemento[1]), int(elemento[2])) #envia un msj de IDO a otro azul
 
 	def daddy(self):#Envio un mensaje para avisarle al nodo que escogí para unirme al arbol de expansión minima
 		msg = (self.DADDY).to_bytes(1, byteorder="big") + (self.nodoId).to_bytes(2, byteorder="big")
