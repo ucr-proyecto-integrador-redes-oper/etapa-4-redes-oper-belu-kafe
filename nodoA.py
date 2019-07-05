@@ -204,6 +204,7 @@ class ClientNode():
 				msg = (self.COMPLETEREQ).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(2, byteorder="big")
 				self.secureUDP.send(msg, ip_out, puerto_out)
 		direccion = self.CARPETA + "/" + str(self.nodoId) + "/" + str(idArchivo)
+		#mandar numero de chunk
 
 def main():
 	myIp = ""
