@@ -106,37 +106,15 @@ class nodoN():
 
 	#metodo que compara las ips de los naranjas para determinar cual empieza a con la asignación
 	def compararIpsNaranjas(self):
-		miIp = self.localIP.split(".")
+		miIp = int(ipV4adress(self.localIP))
 		for naranja in self.listaNaranjas:
-			lAux = naranja.split(".")
-			if int(miIp[0]) < int(lAux[0]):
+			lAux = int(ipV4adress(naranja))
+			if miIp < lAux:
 				self.ipGenerador = True
 				continue
-			elif int(miIp[0]) == int(lAux[0]):
-				if int(miIp[1]) < int(lAux[1]):
-					self.ipGenerador = True
-					continue
-				elif int(miIp[1]) == int(lAux[1]):
-					if int(miIp[2]) < int(lAux[2]):
-						self.ipGenerador = True
-						continue
-					elif int(miIp[2]) == int(lAux[2]):
-						if int(miIp[3]) < int(lAux[3]):
-							self.ipGenerador = True
-							continue
-						else:
-							self.ipGenerador = False
-							break
-					else:
-						self.ipGenerador = False
-						break
-				else:
-					self.ipGenerador = False
-					break
 			else:
 				self.ipGenerador = False
 				break
-
 
 		if self.ipGenerador == True:
 			print("Soy nodo generador")
@@ -286,11 +264,11 @@ class nodoN():
 	def checkComplete(self):
 		while True:
 			if (self.NUM_AZULES == 0 and self.NUM_COMPLETES == 5):
-				readyToJoin()
+				self.readyToJoin()
 
 	def readyToJoin(self):
 			for element in self.listaAzules:
-				self.secureUDPBlue.send((READYTOJOIN).to_bytes(1, byteorder='big'), element[0], element[1])
+				self.secureUDPBlue.send((self.READYTOJOIN).to_bytes(1, byteorder='big'), element[0], element[1])
 
 
 def main():

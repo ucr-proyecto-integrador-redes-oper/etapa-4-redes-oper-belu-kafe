@@ -17,7 +17,7 @@ class nodoV():
         self.COMPLETO = 4
         self.OBTENER = 6 #Get
         self.LOCALIZAR = 8
-        sel.ELIMINAR = 10
+        self.ELIMINAR = 10
         self.BLUE_PORT = 0
         self.GREEN_PORT = 2000
         self.CHUNKSIZE = 1024
@@ -62,11 +62,11 @@ class nodoV():
 #dado un archivo debe dividirlo en tamaños de 1024bytes, añadir encabezado identificadorArchivo/idchunk
 #idchunk debe crearse cada vez acá comenzando en 0
     def depositar(self):
-        print("Dijite la dirección del archivo que desea depositar: ")
+        print("Digite la dirección del archivo que desea depositar: ")
         nombreArchivo = input()
-        print("Dijite IP del Azul con el que desea comunicarse: ")
+        print("Digite IP del Azul con el que desea comunicarse: ")
         direccionIP= input() #Deberia verificarse la direccion con un método de verificar público
-        print("Dijite puerto de Azul con el que desea comunicarse: ")
+        print("Digite puerto de Azul con el que desea comunicarse: ")
         self.BLUE_PORT= int(input())
         identificadorChunk = 0
         archivo = open(nombreArchivo, "r")
@@ -76,7 +76,7 @@ class nodoV():
                 contenido = archivo.read(self.CHUNKSIZE)
                 filesize -= self.CHUNKSIZE
                 tipo = (self.DEPOSITAR).to_bytes(1, byteorder="big")
-                idArchivo = (self.identificadorArchivo +  self.idVerde).to_bytes(1, byteorder="big") + (self.contArchivo).to_bytes(2, byteorder="big")
+                idArchivo = (self.identificadorArchivo + self.idVerde).to_bytes(1, byteorder="big") + (self.contArchivo).to_bytes(2, byteorder="big")
                 idChunk = (identificadorChunk).to_bytes(4, byteorder="big")
                 encabezado = tipo + idArchivo + idChunk
                 msg = encabezado + contenido.encode('utf-8')
@@ -87,7 +87,7 @@ class nodoV():
                 contenido = archivo.read(filesize)
                 filesize -= filesize
                 tipo = (self.DEPOSITAR).to_bytes(1, byteorder="big")
-                idArchivo = (self.identificadorArchivo +  self.idVerde).to_bytes(1, byteorder="big") + (self.contArchivo).to_bytes(2, byteorder="big")
+                idArchivo = (self.identificadorArchivo + self.idVerde).to_bytes(1, byteorder="big") + (self.contArchivo).to_bytes(2, byteorder="big")
                 idChunk = (identificadorChunk).to_bytes(4, byteorder="big")
                 encabezado = tipo + idArchivo + idChunk
                 msg = encabezado + contenido.encode('utf-8')
@@ -108,11 +108,11 @@ class nodoV():
 
 
     def completo(self):
-        print("Dijite el ID del archivo que quiere consultar: ")
+        print("Digite el ID del archivo que quiere consultar: ")
         idArchivo = input()
-        print("Dijite IP del Azul con el que desea comunicarse: ")
+        print("Digite IP del Azul con el que desea comunicarse: ")
         direccionIP= input() #Deberia verificarse la direccion con un método de verificar público
-        print("Dijite puerto de Azul con el que desea comunicarse: ")
+        print("Digite puerto de Azul con el que desea comunicarse: ")
         self.BLUE_PORT= int(input())
         tipo = (self.COMPLETO).to_bytes(1, byteorder="big")
         fileID = (idArchivo).to_bytes(2, byteorder="big") #Preguntar a Kathy si el id del archivo es del 32-63 o 32-63+idV
@@ -121,8 +121,15 @@ class nodoV():
 
 
     def localizar(self):
-        pass
-
+        print("Digite la ID del archivo que desea localizar: ")
+        nombreArchivo = input()
+        print("Digite IP del Azul con el que desea comunicarse: ")
+        direccionIP= input() #Deberia verificarse la direccion con un método de verificar público
+        print("Digite puerto de Azul con el que desea comunicarse: ")
+        self.BLUE_PORT= int(input())
+        tipo = (self.LOCALIZAR).to_bytes(1, byteorder="big")
+	
+        	
 
     def eliminar(self):
         pass
