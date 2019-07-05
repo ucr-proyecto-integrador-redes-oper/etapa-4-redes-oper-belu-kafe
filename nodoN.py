@@ -76,8 +76,8 @@ class nodoN():
 					else:
 						print("Recibi token vacio y asigne a " + str(nodoId))
 						if self.NUM_AZULES == 0: #Si ya asigné todos mis azules
+							self.sendTokenOcupado(nodoId)							
 							self.enviarPaqComplete()
-							self.sendTokenOcupado(nodoId)
 						else:
 							self.sendTokenOcupado(nodoId)
 				if tipoMensaje == self.TOKEN_OCUPADO:

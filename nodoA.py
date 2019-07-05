@@ -136,7 +136,7 @@ class ClientNode():
 			file.close()
 
 	def joinTree(self): ##envía un mensaje a sus vecinos azules para ver si logra conectarse al arbol de expansión minima(DEBE SER UN HILO)
-		if self.nodoId == 0: #si yo soy el nodo que por defecto ya estoy en el árbol no tengo que intentar unirme
+		if self.nodoId == 1: #si yo soy el nodo que por defecto ya estoy en el árbol no tengo que intentar unirme
 			self.connected = 1 #pongo mi variable connected como 1
 			return 0
 		while self.connected == 0:
