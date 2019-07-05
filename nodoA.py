@@ -18,6 +18,7 @@ class ClientNode():
 		self.REXIST = 3 #respuesta a exist solo posee id de archivo
 		self.COMPLETE = 4 #tipo de solicitud complete
 		self.RCOMPLETE = 5 #respuesta a complete
+		self.LOCALIZAR = 8
 		self.JOINTREE = 11
 		self.IDO = 12
 		self.DADDY = 13
@@ -113,6 +114,12 @@ class ClientNode():
 				self.completo(idArchivo, ip_in, puerto_in)
 			elif int(msgId) == self.RCOMPLETE:
 				self.secureUDP.send(infoNodo, self.ip_reply, self.port_reply)
+			elif int(msgId) == self.LOCALIZAR:
+				idArchivo = int.from_bytes(infoNodo[1:3], "big")
+				ip = int.from_bytes(address[0:4], "big") #ip del nodo proveniente
+				puerto = int.from_bytes(address[4:5], "big") #puerto del nodo proveniente
+				print("Solicitud de localizar de archivo " + str(idArchivo))
+				self.localizar(idArchivo, ip, puerto)
 
 	def exist(self, mensaje): #este exist no es el mismo de la solicitud EXISTE
 		identArchivo = int.from_bytes(mensaje[1:4], "big")
@@ -224,6 +231,9 @@ class ClientNode():
 			chunkID = (z).to_bytes(2, byteorder="big")
 			msg = tipo + chunkID #cada nombre del chunk
 			self.secureUDP.send(msg, ip_in, puerto_in)#mandar número de chunk
+
+	def localizar(self, idArchivo, ip, puerto):
+		pass
 
 def main():
 	myIp = ""
