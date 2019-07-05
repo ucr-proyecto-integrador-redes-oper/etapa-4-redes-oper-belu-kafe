@@ -269,6 +269,7 @@ class nodoN():
 		while True:
 			if (self.NUM_AZULES == 0 and self.NUM_COMPLETES == self.FULL_COMPLETES):
 				self.readyToJoin()
+				break
 
 	def readyToJoin(self):
 			for element in self.listaAzules:
