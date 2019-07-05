@@ -145,8 +145,8 @@ class nodoN():
 			print(self.mapa)
 			nodoIdBytes = nodoId.to_bytes(2,"big")
 			vecinos = self.listaVecinos(nodoId)
-			NUM_AZULES -= 1
-			listaAzules.append(solicitud)
+			self.NUM_AZULES -= 1
+			self.listaAzules.append(solicitud)
 			for n in vecinos:
 				if self.mapa[n] == (0,0):
 					msgId = (15).to_bytes(1, "big")
@@ -225,13 +225,13 @@ class nodoN():
 			self.socketNN.settimeout(60)
 
 	def recibirSolicitud(self):
-				while True:
-						msg = self.secureUDPBlue.getMessage()
-						ip = ip_tuple_to_str(ip_to_int_tuple(msg[1:5]))
-						port = int.from_bytes(msg[5:7], byteorder='big')
-						info = ip, port
-						if self.isRepeated(ip, port) == False:
-							self.cola.append(info)
+		while True:
+			msg, address = self.secureUDPBlue.getMessage()
+			ip = ip_tuple_to_str(ip_to_int_tuple(msg[1:5]))
+			port = int.from_bytes(msg[5:7], byteorder='big')
+			info = ip, port
+			if self.isRepeated(ip, port) == False:
+				self.cola.append(info)
 
 	def isRepeated(self, ip, port):
 		for x, y in self.mapa.items():
