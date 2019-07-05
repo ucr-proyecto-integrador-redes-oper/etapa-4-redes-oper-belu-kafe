@@ -91,8 +91,8 @@ class ClientNode():
 			elif int(msgId) == self.IDO:#si recibo un IDO veo si estoy conectado y si no envío un daddy y agrego a mi papa a la lista idVecinosArbol
 				print("Recibí un IDO")
 				if self.connected == 0:
-					self.daddy()
-					idPadre= int.from_bytes(infoNodo[1:3], "big")
+					idPadre = int.from_bytes(infoNodo[1:3], "big")
+					self.daddy(idPadre)
 					print("Me he unido al grafo mi ID: " + str(self.nodoId) +" el ID de mi padre: " +  str(idPadre))
 					self.idVecinosArbol.append(idPadre)
 			elif int(msgId) == self.DADDY:#si recibo un daddy agrego el id del nodo a mi lista de idVecinosArbol
@@ -159,8 +159,11 @@ class ClientNode():
 				if elemento[0] == Idnodo :
 					self.secureUDP.send(msg, str(elemento[1]), int(elemento[2])) #envia un msj de IDO a otro azul
 
-	def daddy(self):#Envio un mensaje para avisarle al nodo que escogí para unirme al arbol de expansión minima
+	def daddy(self, idNodo):#Envio un mensaje para avisarle al nodo que escogí para unirme al arbol de expansión minima
 		msg = (self.DADDY).to_bytes(1, byteorder="big") + (self.nodoId).to_bytes(2, byteorder="big")
+		for elemento in self.vecinos:
+				if elemento[0] == idNodo:
+					self.secureUDP.send(msg, str(elemento[1]), int(elemento[2])) #envia un msj de IDO a otro azul
 		self.connected = 1
 
 	def startJoin(self):
@@ -168,7 +171,7 @@ class ClientNode():
 		hiloJoin = Thread(target=self.joinTree, args=())
 		hiloJoin.start()
 
-
+	#Si tengo vecinos ya instanciados, les notifico que ya existo con un Hello
 	def helloVecino(self, vecinoIP, vecinoPort):
 		msgId = (1).to_bytes(1, byteorder="big")
 		nodoId = (self.nodoId).to_bytes(2, byteorder="big")
@@ -177,18 +180,21 @@ class ClientNode():
 		msgFinal = (msgId + nodoId + msgIP + msgPort)
 		self.secureUDP.send(msgFinal, vecinoIP, vecinoPort)
 
+	#Método que actualiza mis vecinos cuando recibo un Hello
 	def actualizarVecinos(self, vecinoId, vecinoIP, vecinoPort):
 		for vecino in self.vecinos:
 			if vecino[0] == vecinoId:
 				vecino[1] = vecinoIP
 				vecino[2] = vecinoPort
 
+	#Método que verifica si recibo un vecino repetido
 	def isRepeated(self, nodoId):
 		for n in self.vecinos:
 			if n[0] == nodoId:
 				return True
 		return False
 
+	#Hilo que recibe de consola un 1 para digitar su información de ID de nodo con sus vecinos
 	def consola(self):
 		while True:
 			resp = input()
@@ -196,7 +202,8 @@ class ClientNode():
 				print("Yo soy " + str(self.nodoId) + " con IP " + self.localIP + " y puerto " + str(self.localPort))
 				for n in self.vecinos:
 					print(n)
-
+	
+	
 	def completo(self, idArchivo, ip_in, puerto_in):
 		for x in self.idVecinosArbol:
 			if (self.vecinos[x][1] != ip_in): #mandarselo a todos excepto del que viene

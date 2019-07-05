@@ -32,13 +32,13 @@ class nodoN():
 		self.cola = []
 		self.listaNaranjas = []
 		self.listaAzules = []
-		self.ipGenerador = False
+		self.mapa = {}  # mapa que recibe key como string y una tupla de ip y puerto
 		self.socketNN = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		self.socketNN.bind((self.localIP, self.ORANGE_PORT))
-		self.mapa = {}  # mapa que recibe key como string y una tupla de ip y puerto
 		self.secureUDPBlue = secureUDP(self.localIP, self.BLUE_PORT)
-		input("Presione enter para iniciar proceso.")
+		self.ipGenerador = False
 		self.cargarArchivo()
+		input("Presione enter para iniciar proceso.")
 		self.enviarPaqIniciales(self.localIP)
 		hiloRecvNaranja = Thread(target=self.recibirNaranja, args=())
 		hiloRecvAzul = Thread(target=self.recibirSolicitud, args=())
@@ -79,7 +79,6 @@ class nodoN():
 						if self.NUM_AZULES == 0: #Si ya asigné todos mis azules							
 							self.enviarPaqComplete()
 				if tipoMensaje == self.TOKEN_OCUPADO:
-					print("Recibi token ocupado.")
 					self.recibirTokenOcupado(msg)
 				if tipoMensaje == self.TOKEN_COMPLETE:
 					print("Recibi token complete.")
@@ -90,6 +89,7 @@ class nodoN():
 					print("Token perdido, creando uno nuevo.")
 					self.crearToken()
 
+	#Método que procesa las IPs que le llegan
 	def procesoInicial(self, msg):
 		ipNaranja = ip_tuple_to_str(ip_to_int_tuple(msg[1:5]))
 		print("Recibí el token inicial con IP " + ipNaranja)
@@ -100,14 +100,14 @@ class nodoN():
 			if len(self.listaNaranjas) == self.NUM_NARANJAS-1:
 				self.compararIpsNaranjas()
 
-	#metodo que envia la ip del naranja actual para determinar cual será el nodo generador
+	#metodo que envia las ips de los naranjas para determinar cual será el nodo generador
 	def enviarPaqIniciales(self, ipNaranja):
 		miDireccion = ipNaranja.split(".")
 		msg = (0).to_bytes(1, byteorder="big")
 		IP = ip_to_bytes(str_ip_to_tuple(ipNaranja))
 		self.socketNN.sendto(msg + IP, self.nextOrangeAddress)
 
-	#metodo que compara las ips de los naranjas para determinar cual empieza a con la asignación
+	#metodo que compara las ips de los naranjas para determinar si soy el nodo generador
 	def compararIpsNaranjas(self):
 		miIp = int(IPv4Address(self.localIP))
 		for naranja in self.listaNaranjas:
@@ -128,17 +128,21 @@ class nodoN():
 			self.socketNN.settimeout(30)
 			#hago asignaciones, mando token ocupado
 
+	#Método que crea el token, si tengo solicitudes, asigno y lo mando ocupado, si no, lo mando vacío
 	def crearToken(self):
 		nodoId = self.recibirTokenVacio()
 		if nodoId == -1:
 			self.sendTokenVacio()
 		else:
 			self.sendTokenOcupado(nodoId)
-
+	
+	#Método que arma el token vacío y lo pasa
 	def sendTokenVacio(self):
 		tipoMensaje = (3).to_bytes(1,"big")
 		self.socketNN.sendto(tipoMensaje, self.nextOrangeAddress)
 
+	#Método que recibe el token vacío y verifica si tiene solicitudes pendientes
+	#Si las tiene, asigna algún nodo disponible y responde al azul con sus vecinos
 	def recibirTokenVacio(self):
 		if(len(self.cola) != 0 and self.NUM_AZULES != 0):
 			solicitud = self.cola.pop(0)
@@ -197,6 +201,7 @@ class nodoN():
 		if self.ipGenerador == True:
 			self.socketNN.settimeout(60)
 
+	#Método que recibe el token ocupado y actualiza la estructura de azules
 	def recibirTokenOcupado(self, msg):
 		nodoId = int.from_bytes(msg[1:3], byteorder='big')
 		ip = ip_tuple_to_str(ip_to_int_tuple(msg[3:7]))
@@ -227,6 +232,7 @@ class nodoN():
 		if self.ipGenerador == True:
 			self.socketNN.settimeout(60)
 
+	#Hilo que recibe solicitudes de azules y las encola
 	def recibirSolicitud(self):
 		while True:
 			msg, address = self.secureUDPBlue.getMessage()
@@ -235,7 +241,8 @@ class nodoN():
 			info = ip, port
 			if self.isRepeated(ip, port) == False:
 				self.cola.append(info)
-
+	
+	#Método que verifica si las solicitudes que llegan son repetidas
 	def isRepeated(self, ip, port):
 		for x, y in self.mapa.items():
 			if y == (ip, port):
@@ -257,21 +264,25 @@ class nodoN():
 		#print(vecinos)
 		return vecinos
 
+	#Método que devuelve un ID disponible de nodo azul
 	def getNodoId(self):
 		for x, y in self.mapa.items():
 			if y == (0,0):
 				return x
-
+	
+	#Método que actualiza la estructura de los azules asignados
 	def actualizarEstructuras(self, key, ip, puerto):
 		self.mapa[str(key)] = (ip, puerto)
 
+	#Método que verifica si todos los nodos naranjas ya terminaron sus asignaciones
 	def checkComplete(self):
 		while True:
 			if (self.NUM_AZULES == 0 and self.NUM_COMPLETES == self.FULL_COMPLETES):
-				print("Sending join to blues")
+				print("Azules listos. ¡Notificando que pueden comenzar el árbol generador!")
 				self.readyToJoin()
 				break
-
+	
+	#Le notifica a sus azules que están listos para iniciar el árbol generdor
 	def readyToJoin(self):
 			for element in self.listaAzules:
 				self.secureUDPBlue.send((self.READYTOJOIN).to_bytes(1, byteorder='big'), element[0], element[1])
@@ -304,7 +315,7 @@ def main():
 		print("Debe ingresar ip y puerto en los argumentos")
 		sys.exit(0)
 
-	print("Mi Ip es " + myIp)
+	print("Mi IP es " + myIp)
 	print("El siguiente IP es " + ip)
 	print("El siguiente puerto es " + str(port))
 	servidor = nodoN(myIp, ip, port)
