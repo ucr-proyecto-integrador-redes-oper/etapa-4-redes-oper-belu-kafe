@@ -82,7 +82,6 @@ class nodoV():
                 msg = encabezado + contenido.encode('utf-8')
                 self.secureUDPGREEN.send(msg, direccionIP, self.BLUE_PORT)
                 identificadorChunk += 1
-                print(f"{msg}")
             else:
                 contenido = archivo.read(filesize)
                 filesize -= filesize
@@ -93,7 +92,6 @@ class nodoV():
                 msg = encabezado + contenido.encode('utf-8')
                 self.secureUDPGREEN.send(msg, direccionIP, self.BLUE_PORT)
                 identificadorChunk += 1
-                print(f"{msg}")
         identArchivo = int.from_bytes(idArchivo, "big")
         self.chunksList.append(( identArchivo, identificadorChunk))
         self.contArchivo += 1
@@ -135,17 +133,17 @@ class nodoV():
     def eliminar(self):
         pass
 
-    def verificarIP(host):
-        regex = r"\b(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b"
-        x = re.search(regex, host)
-        try:
-            if host == "localhost":
-                print("Verificando direccion.... direccion ip correcta")
-            else:
-                print("Verificando direccion.... direccion ip correcta")
-        except:
-            print("Dirección IP Inválida")
-            sys.exit(0)
+def verificarIP(host):
+    regex = r"\b(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b"
+    x = re.search(regex, host)
+    try:
+        if host == "localhost":
+            print("Verificando direccion.... direccion ip correcta")
+        else:
+            print("Verificando direccion.... direccion ip correcta")
+    except:
+        print("Dirección IP Inválida")
+        sys.exit(0)
 
 def main():
     print("Ingrese la IP de esta máquina: ")

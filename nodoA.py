@@ -138,7 +138,7 @@ class ClientNode():
 		numeroChunk = int.from_bytes(mensaje[4:8], "big")
 		idnodoFile = self.CARPETA + "/" + str(self.nodoId)
 		if os.path.exists(idnodoFile) == False:
-			 os.mkdir(idnodoFile)
+			 os.makedirs(idnodoFile)
 		direccion = idnodoFile + "/" + str(identArchivo)
 		nombreArchivoNuevo = direccion + "/" + str(numeroChunk) + ".txt"
 		chunk = mensaje[8:len(mensaje)]
