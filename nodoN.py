@@ -84,6 +84,7 @@ class nodoN():
 					print("Recibi token ocupado.")
 					self.recibirTokenOcupado(msg)
 				if tipoMensaje == self.TOKEN_COMPLETE:
+					print("Recibi token complete.")
 					self.NUM_COMPLETES += 1
 					self.socketNN.sendto(msg, (self.nextOrangeIp, self.nextOrangePort))
 			except socket.timeout:
@@ -141,7 +142,7 @@ class nodoN():
 		self.socketNN.sendto(tipoMensaje, self.nextOrangeAddress)
 
 	def recibirTokenVacio(self):
-		if(len(self.cola) != 0):
+		if(len(self.cola) != 0 or self.NUM_AZULES == 0):
 			solicitud = self.cola.pop(0)
 			nodoId = int(self.getNodoId())
 			self.actualizarEstructuras(nodoId, solicitud[0], solicitud[1])
