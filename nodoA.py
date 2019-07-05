@@ -86,8 +86,10 @@ class ClientNode():
 				self.helloVecino(vecinoIP, vecinoPort)
 			elif int(msgId) == self.JOINTREE:#si recibo solicitud de unión respondo si estoy en el arbol
 				idSolicitud = int.from_bytes(infoNodo[1:3], "big")
+				print("Recibí una solicitud de " + str(idSolicitud))
 				self.Ido(idSolicitud)
 			elif int(msgId) == self.IDO:#si recibo un IDO veo si estoy conectado y si no envío un daddy y agrego a mi papa a la lista idVecinosArbol
+				print("Recibí un IDO")
 				if self.connected == 0:
 					self.daddy()
 					idPadre= int.from_bytes(infoNodo[1:3], "big")
@@ -95,6 +97,7 @@ class ClientNode():
 					self.idVecinosArbol.append(idPadre)
 			elif int(msgId) == self.DADDY:#si recibo un daddy agrego el id del nodo a mi lista de idVecinosArbol
 				idHijo= int.from_bytes(infoNodo[1:3], "big")
+				print("Recibí un daddy con " + str(idHijo))
 				self.idVecinosArbol.append(idHijo)
 			elif int(msgId) == self.STARTJOIN:##un mensaje con solo ese numero que viene de los naranjas a todos los azules que asignó para que comiencen a unirse al grafo, cuando un nodo azul recibe esto pone a correr el hilo joinTree.
 				self.startJoin()
@@ -146,10 +149,8 @@ class ClientNode():
 			nodeId = (self.nodoId).to_bytes(2, byteorder="big")
 			msgFinal = (msgId + nodeId)
 			for vecino in self.vecinos :
-				print("vecino 1" + str(vecino[1]))
-				print("vecino 2" + str(vecino[2]))
 				self.secureUDP.send(msgFinal, str(vecino[1]), int(vecino[2]))
-			sleep(5)
+			sleep(1)
 
 	def Ido(self, Idnodo): #se envía mensaje si formo parte del árbol
 		if self.connected == 1:
@@ -160,7 +161,7 @@ class ClientNode():
 
 	def daddy(self):#Envio un mensaje para avisarle al nodo que escogí para unirme al arbol de expansión minima
 		msg = (self.DADDY).to_bytes(1, byteorder="big") + (self.nodoId).to_bytes(2, byteorder="big")
-		self.connected == 1
+		self.connected = 1
 
 	def startJoin(self):
 		print("Starting... joinTree")
