@@ -5,6 +5,7 @@ import socket
 import csv
 from threading import Lock, Thread
 from time import sleep
+from ipaddress import*
 import re # Para usar RegEx (Expresiones Regulares)
 
 class nodoN():
@@ -106,9 +107,9 @@ class nodoN():
 
 	#metodo que compara las ips de los naranjas para determinar cual empieza a con la asignación
 	def compararIpsNaranjas(self):
-		miIp = int(ipV4adress(self.localIP))
+		miIp = int(IPv4Address(self.localIP))
 		for naranja in self.listaNaranjas:
-			lAux = int(ipV4adress(naranja))
+			lAux = int(IPv4Address(naranja))
 			if miIp < lAux:
 				self.ipGenerador = True
 				continue
