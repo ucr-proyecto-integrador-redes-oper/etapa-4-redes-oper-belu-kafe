@@ -21,7 +21,8 @@ class nodoN():
 		self.NUM_NARANJAS = 3
 		self.NUM_AZULES = 5
 		self.READYTOJOIN = 17
-		self.NUM_COMPLETES = self.NUM_NARANJAS - 1
+		self.NUM_COMPLETES = 0
+		self.FULL_COMPLETES = self.NUM_NARANJAS - 1
 		self.hostname = socket.gethostname()
 		self.localIP = myIp
 		self.nextOrangeIp = ip
