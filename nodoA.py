@@ -160,7 +160,7 @@ class ClientNode():
 
 	def daddy(self):#Envio un mensaje para avisarle al nodo que escogí para unirme al arbol de expansión minima
 		msg = (self.DADDY).to_bytes(1, byteorder="big") + (self.nodoId).to_bytes(2, byteorder="big")
-		self.connected == 1
+		self.connected = 1
 
 	def startJoin(self):
 		print("Starting... joinTree")
