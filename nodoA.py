@@ -16,12 +16,12 @@ class ClientNode():
 		self.HELLO = 1
 		self.EXIST = 2 #exist solo posee el id de archivo
 		self.REXIST = 3 #respuesta a exist solo posee id de archivo
+		self.COMPLETE = 4 #tipo de solicitud complete
+		self.RCOMPLETE = 5 #respuesta a complete
 		self.JOINTREE = 11
 		self.IDO = 12
 		self.DADDY = 13
 		self.STARTJOIN = 17
-		self.COMPLETE = 4 #tipo de solicitud complete
-		self.RCOMPLETE = 5 #respuesta a complete
 		self.CARPETA = "Archivos"
 		self.localIP = myIp
 		self.localPort = random.randint(10000, 65000)
@@ -33,6 +33,8 @@ class ClientNode():
 		self.connected = 0 # variable que dice si estoy conectado al joinTree
 		self.idVecinosArbol = [] #solo contiene los id se deben buscar en vecinos el ip y puerto correspondientes
 		self.sendRequest()
+		self.ip_reply = 0 # para guardar la ip proveniente y usar en la respuesta del completo
+		self.port_reply = 0 # para guardar el puerto proveniente y usar en la respuesta del completo
 		hiloConsola = Thread(target=self.consola, args=())
 		hiloConsola.start()
 		hiloRecvAzul = Thread(target=self.receive, args=())
@@ -109,6 +111,8 @@ class ClientNode():
 				ip_in = int.from_bytes(address[0:4], "big") #ip del nodo proveniente
 				puerto_in = int.from_bytes(address[4:5], "big") #puerto del nodo proveniente
 				self.completo(idArchivo, ip_in, puerto_in)
+			elif int(msgId) == self.RCOMPLETE:
+				self.secureUDP.send(infoNodo, self.ip_reply, self.port_reply)
 
 	def exist(self, mensaje): #este exist no es el mismo de la solicitud EXISTE
 		identArchivo = int.from_bytes(mensaje[1:4], "big")
@@ -204,8 +208,9 @@ class ClientNode():
 				for n in self.vecinos:
 					print(n)
 
-
 	def completo(self, idArchivo, ip_in, puerto_in):
+		self.ip_reply = ip_in
+		self.port_reply = puerto_in
 		for x in self.idVecinosArbol:
 			if (self.vecinos[x][1] != ip_in): #mandarselo a todos excepto del que viene
 				ip_out = vecinos[x][1]
@@ -214,7 +219,7 @@ class ClientNode():
 				self.secureUDP.send(msg, ip_out, puerto_out)
 		direccion = os.getcwd() + "/" + self.CARPETA + "/" + str(self.nodoId) + "/" + str(idArchivo)
 		listaChunks = listdir(direccion)
-		tipo = (self.RCOMPLETO).to_bytes(1, byteorder="big")
+		tipo = (self.RCOMPLETE).to_bytes(1, byteorder="big")
 		for z in listaChunks: #aqui deberia ir un for que itere sobre todos los nombres de chunk
 			chunkID = (z).to_bytes(2, byteorder="big")
 			msg = tipo + chunkID #cada nombre del chunk
