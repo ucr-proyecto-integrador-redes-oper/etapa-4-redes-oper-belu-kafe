@@ -26,7 +26,7 @@ class nodoV():
         self.contArchivo = 0 #es parte del identificador de archivo 2 bytes
         self.identificadorArchivo = 32 # 1 byte por ser el grupo 1 tenemos un rango de identificador de 32 a 63
         self.idVerde = idV #este se le suma a identificador de archivo
-        self.chunksList = []
+        self.chunksList = [] #lista de pares que relaciona un archivo con la cantidad de chunks que posee
         self.secureUDPGREEN = secureUDP(self.localIP, self.GREEN_PORT)
 
 

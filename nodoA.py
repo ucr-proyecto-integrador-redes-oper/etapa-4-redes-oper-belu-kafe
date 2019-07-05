@@ -180,6 +180,15 @@ class ClientNode():
 
 	def startJoin(self):
 		print("Starting... joinTree")
+		
+		while True:
+			cantidadDeVecinos = 0
+			for vecino in self.vecinos:
+				if vecino[1] and vecino[2]:
+					cantidadDeVecinos += 1
+			if cantidadDeVecinos == len(self.vecinos):
+				break					
+		
 		hiloJoin = Thread(target=self.joinTree, args=())
 		hiloJoin.start()
 
