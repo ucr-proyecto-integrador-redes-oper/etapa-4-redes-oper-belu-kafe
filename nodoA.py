@@ -20,7 +20,8 @@ class ClientNode():
 		self.IDO = 12
 		self.DADDY = 13
 		self.STARTJOIN = 17
-		self.COMPLETEREQ = 4 #tipo de solicitud complete
+		self.COMPLETE = 4 #tipo de solicitud complete
+		self.RCOMPLETE = 5 #respuesta a complete
 		self.CARPETA = "Archivos"
 		self.localIP = myIp
 		self.localPort = random.randint(10000, 65000)
@@ -101,7 +102,7 @@ class ClientNode():
 				self.idVecinosArbol.append(idHijo)
 			elif int(msgId) == self.STARTJOIN:##un mensaje con solo ese numero que viene de los naranjas a todos los azules que asignó para que comiencen a unirse al grafo, cuando un nodo azul recibe esto pone a correr el hilo joinTree.
 				self.startJoin()
-			elif int(msgId) == self.COMPLETEREQ:
+			elif int(msgId) == self.COMPLETE:
 				#if(self.existe()):
 				idArchivo = int.from_bytes(infoNodo[1:3], "big")
 				print("Revisando si el archivo está completo...")
@@ -202,19 +203,22 @@ class ClientNode():
 				print("Yo soy " + str(self.nodoId) + " con IP " + self.localIP + " y puerto " + str(self.localPort))
 				for n in self.vecinos:
 					print(n)
-	
-	
+
+
 	def completo(self, idArchivo, ip_in, puerto_in):
 		for x in self.idVecinosArbol:
 			if (self.vecinos[x][1] != ip_in): #mandarselo a todos excepto del que viene
 				ip_out = vecinos[x][1]
 				puerto_out = vecinos[x][2]
-				msg = (self.COMPLETEREQ).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(2, byteorder="big")
+				msg = (self.COMPLETE).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(2, byteorder="big")
 				self.secureUDP.send(msg, ip_out, puerto_out)
-		direccion = self.CARPETA + "/" + str(self.nodoId) + "/" + str(idArchivo)
-		for #aqui deberia ir un for que itere sobre todos los nombres de chunk
-		msg = #cada nombre del chunk
-		self.secureUDP.send(msg, ip_in, puerto_in)#mandar número de chunk
+		direccion = os.getcwd() + "/" + self.CARPETA + "/" + str(self.nodoId) + "/" + str(idArchivo)
+		listaChunks = listdir(direccion)
+		tipo = (self.RCOMPLETO).to_bytes(1, byteorder="big")
+		for z in listaChunks: #aqui deberia ir un for que itere sobre todos los nombres de chunk
+			chunkID = (z).to_bytes(2, byteorder="big")
+			msg = tipo + chunkID #cada nombre del chunk
+			self.secureUDP.send(msg, ip_in, puerto_in)#mandar número de chunk
 
 def main():
 	myIp = ""
