@@ -19,10 +19,9 @@ class nodoN():
 		self.TOKEN_COMPLETE = 2
 		self.TOKEN_VACIO = 3
 		self.NUM_NARANJAS = 3
-		self.NUM_NARANJAS = 2
-		self.NUM_AZULES = 15
+		self.NUM_AZULES = 5
 		self.READYTOJOIN = 17
-		self.NUM_COMPLETES = 0
+		self.NUM_COMPLETES = self.NUM_NARANJAS - 1
 		self.hostname = socket.gethostname()
 		self.localIP = myIp
 		self.nextOrangeIp = ip
@@ -81,8 +80,6 @@ class nodoN():
 					self.recibirTokenOcupado(msg)
 				if tipoMensaje == self.TOKEN_COMPLETE:
 					self.NUM_COMPLETES += 1
-				if self.NUM_AZULES == 0: #Si ya asigné todos mis azules
-					self.enviarPaqComplete()
 			except socket.timeout:
 				if self.ipGenerador == True:
 					print("Token perdido, creando uno nuevo.")
@@ -146,6 +143,8 @@ class nodoN():
 			nodoIdBytes = nodoId.to_bytes(2,"big")
 			vecinos = self.listaVecinos(nodoId)
 			self.NUM_AZULES -= 1
+			if self.NUM_AZULES == 0: #Si ya asigné todos mis azules
+				self.enviarPaqComplete()
 			self.listaAzules.append(solicitud)
 			for n in vecinos:
 				if self.mapa[n] == (0,0):
@@ -264,7 +263,7 @@ class nodoN():
 
 	def checkComplete(self):
 		while True:
-			if (self.NUM_AZULES == 0 and self.NUM_COMPLETES == 5):
+			if (self.NUM_AZULES == 0 and self.NUM_COMPLETES == self.FULL_COMPLETES):
 				self.readyToJoin()
 
 	def readyToJoin(self):
