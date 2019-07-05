@@ -75,12 +75,17 @@ class nodoN():
 						self.sendTokenVacio()
 					else:
 						print("Recibi token vacio y asigne a " + str(nodoId))
-						self.sendTokenOcupado(nodoId)
+						if self.NUM_AZULES == 0: #Si ya asigné todos mis azules
+							self.enviarPaqComplete()
+							self.sendTokenOcupado(nodoId)
+						else:
+							self.sendTokenOcupado(nodoId)
 				if tipoMensaje == self.TOKEN_OCUPADO:
 					print("Recibi token ocupado.")
 					self.recibirTokenOcupado(msg)
 				if tipoMensaje == self.TOKEN_COMPLETE:
 					self.NUM_COMPLETES += 1
+					self.socketNN.sendto(msg, (self.nextOrangeIp, self.nextOrangePort))
 			except socket.timeout:
 				if self.ipGenerador == True:
 					print("Token perdido, creando uno nuevo.")
@@ -144,8 +149,6 @@ class nodoN():
 			nodoIdBytes = nodoId.to_bytes(2,"big")
 			vecinos = self.listaVecinos(nodoId)
 			self.NUM_AZULES -= 1
-			if self.NUM_AZULES == 0: #Si ya asigné todos mis azules
-				self.enviarPaqComplete()
 			self.listaAzules.append(solicitud)
 			for n in vecinos:
 				if self.mapa[n] == (0,0):
