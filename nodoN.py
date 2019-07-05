@@ -75,11 +75,9 @@ class nodoN():
 						self.sendTokenVacio()
 					else:
 						print("Recibi token vacio y asigne a " + str(nodoId))
-						if self.NUM_AZULES == 0: #Si ya asigné todos mis azules
-							self.sendTokenOcupado(nodoId)							
+						self.sendTokenOcupado(nodoId)
+						if self.NUM_AZULES == 0: #Si ya asigné todos mis azules							
 							self.enviarPaqComplete()
-						else:
-							self.sendTokenOcupado(nodoId)
 				if tipoMensaje == self.TOKEN_OCUPADO:
 					print("Recibi token ocupado.")
 					self.recibirTokenOcupado(msg)
@@ -142,7 +140,7 @@ class nodoN():
 		self.socketNN.sendto(tipoMensaje, self.nextOrangeAddress)
 
 	def recibirTokenVacio(self):
-		if(len(self.cola) != 0 or self.NUM_AZULES == 0):
+		if(len(self.cola) != 0 and self.NUM_AZULES != 0):
 			solicitud = self.cola.pop(0)
 			nodoId = int(self.getNodoId())
 			self.actualizarEstructuras(nodoId, solicitud[0], solicitud[1])
@@ -190,7 +188,8 @@ class nodoN():
 				nodoIdResp = int.from_bytes(resp[1:3], byteorder='big')
 				if nodoId == nodoIdResp:
 					recibido = True
-					self.sendTokenVacio()
+					if self.NUM_AZULES != 0:
+						self.sendTokenVacio()
 			except socket.timeout:
 				#Si se vence el timeout, vuelvo a enviarlo
 				pass
@@ -269,6 +268,7 @@ class nodoN():
 	def checkComplete(self):
 		while True:
 			if (self.NUM_AZULES == 0 and self.NUM_COMPLETES == self.FULL_COMPLETES):
+				print("Sending join to blues")
 				self.readyToJoin()
 				break
 
