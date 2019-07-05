@@ -143,8 +143,9 @@ class ClientNode():
 			msgId = (self.JOINTREE).to_bytes(1, byteorder="big")
 			nodeId = (self.nodoId).to_bytes(2, byteorder="big")
 			msgFinal = (msgId + nodeId)
-			self.secureUDP.send(msgFinal, self.serverIP, self.serverPort)
-		sleep(5)
+			for vecino in self.vecinos :
+				self.secureUDP.send(msgFinal, vecino[1], vecino[2])
+			sleep(5)
 
 	def Ido(self, Idnodo): #se envía mensaje si formo parte del árbol
 		if self.connected == 1:
