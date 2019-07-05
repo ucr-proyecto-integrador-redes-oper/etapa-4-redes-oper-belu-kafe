@@ -102,9 +102,11 @@ class ClientNode():
 				#if(self.existe()):
 				idArchivo = int.from_bytes(infoNodo[1:3], "big")
 				print("Revisando si el archivo está completo...")
-				self.completo(idArchivo)
+				ip_in = int.from_bytes(address[0:4], "big") #ip del nodo proveniente
+				puerto_in = int.from_bytes(address[4:5], "big") #puerto del nodo proveniente
+				self.completo(idArchivo, ip_in, puerto_in)
 
-	def exist(self, mensaje):
+	def exist(self, mensaje): #este exist no es el mismo de la solicitud EXISTE
 		identArchivo = int.from_bytes(mensaje[1:4], "big")
 		idnodoFile = self.CARPETA + "/" + str(self.nodoId)
 		direccion = idnodoFile + "/" + str(identArchivo)
@@ -191,9 +193,14 @@ class ClientNode():
 				for n in self.vecinos:
 					print(n)
 
-	def completo(self, idArchivo):
-		pass
-		#Como sabe el azul la cantidad de chunks que tiene un archivo 
+	def completo(self, idArchivo, ip_in, puerto_in):
+		for x in self.idVecinosArbol:
+			if (self.vecinos[x][1] != ip_in): #mandarselo a todos excepto del que viene
+				ip_out = vecinos[x][1]
+				puerto_out = vecinos[x][2]
+				msg = (self.COMPLETEREQ).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(2, byteorder="big")
+				self.secureUDP.send(msg, ip_out, puerto_out)
+		direccion = self.CARPETA + "/" + str(self.nodoId) + "/" + str(idArchivo)
 
 def main():
 	myIp = ""
