@@ -121,15 +121,16 @@ class nodoV():
 
 
     def localizar(self):
-        print("Digite la ID del archivo que desea localizar: ")
-        nombreArchivo = input()
+        print("Digite el ID del archivo que quiere consultar: ")
+        idArchivo = input()
         print("Digite IP del Azul con el que desea comunicarse: ")
-        direccionIP= input() #Deberia verificarse la direccion con un método de verificar público
+        direccionIP = input() 
         print("Digite puerto de Azul con el que desea comunicarse: ")
         self.BLUE_PORT= int(input())
-        tipo = (self.LOCALIZAR).to_bytes(1, byteorder="big")
-	
-        	
+        tipo = (self.COMPLETO).to_bytes(1, byteorder="big")
+        fileID = (idArchivo).to_bytes(2, byteorder="big")
+        msg = tipo + fileID
+        self.secureUDPGREEN.send(msg, direccionIP, self.BLUE_PORT)
 
     def eliminar(self):
         pass
