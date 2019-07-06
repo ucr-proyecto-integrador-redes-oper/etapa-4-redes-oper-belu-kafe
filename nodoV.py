@@ -5,6 +5,7 @@ import socket
 import csv
 from threading import Lock, Thread
 from time import sleep
+import time
 import re # Para usar RegEx (Expresiones Regulares)
 import os
 
@@ -119,10 +120,14 @@ class nodoV():
         self.secureUDPGREEN.send(msg, direccionIP, self.BLUE_PORT)
 
         listTemp = []
-        # creo que esto se deberia hacer while algo
-        infoNodo, address = self.secureUDPGREEN.getMessage()
-        chunkNum = int.from_bytes(infoNodo[3:7], "big")
-        listTemp.append(chunkNum)
+        timeout = time.time() + 1   # timer de 1 segundo
+        while True: # por 1 segundo recibe chunkIDs
+            infoNodo, address = self.secureUDPGREEN.getMessage()
+            chunkNum = int.from_bytes(infoNodo[3:7], "big")
+            listTemp.append(chunkNum)
+            if (time.time() > timeout):
+                break
+
         listTemp = list(dict.fromkeys(listTemp)) # elimina duplicados de la lista
 
         size = 0
@@ -136,7 +141,7 @@ class nodoV():
             return True
         else:
             print("Archivo Corrupto")
-
+            return False
 
 
     def localizar(self):
