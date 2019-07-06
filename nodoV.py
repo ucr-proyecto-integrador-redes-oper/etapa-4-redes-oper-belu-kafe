@@ -32,7 +32,7 @@ class nodoV():
         self.listaChunkIDs = [] #lista de todos los chunkids de un acrhivo para la respuesta de complete
         self.secureUDPGREEN = secureUDP(self.localIP, self.GREEN_PORT)
         hiloRecvVerde = Thread(target=self.receive, args=())
-		hiloRecvVerde.start()
+        hiloRecvVerde.start()
 
     def menu(self):
         opcion = 1
@@ -63,14 +63,14 @@ class nodoV():
                 sys.exit(0)
 
     def receive(self): # hilo que se mantiene recibiendo respuestas a solicitudes
-		while True:
-			infoNodo, address = self.secureUDP.getMessage() # el contenido de infoNodo va a ser diferente dependiendo del tipo de respuesta
-			msgId = int(infoNodo[0])
-			if int(msgId) == self.RCOMPLETO:
+        while True:
+            infoNodo, address = self.secureUDP.getMessage() # el contenido de infoNodo va a ser diferente dependiendo del tipo de respuesta
+            msgId = int(infoNodo[0])
+            if int(msgId) == self.RCOMPLETO:
                 chunkNum = int.from_bytes(infoNodo[3:7], "big")
                 id = int.from_bytes(infoNodo[1:3], "big")
                 self.rcompleto(id, chunkNum)
-				self.listaChunkIDs.clear()
+                self.listaChunkIDs.clear()
 
 #dado un archivo debe dividirlo en tamaños de 1024bytes, añadir encabezado identificadorArchivo/idchunk
 #idchunk debe crearse cada vez acá comenzando en 0
