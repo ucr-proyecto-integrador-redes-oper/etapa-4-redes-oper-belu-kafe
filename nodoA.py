@@ -106,7 +106,7 @@ class ClientNode():
 			elif int(msgId) == self.STARTJOIN:##un mensaje con solo ese numero que viene de los naranjas a todos los azules que asignó para que comiencen a unirse al grafo, cuando un nodo azul recibe esto pone a correr el hilo joinTree.
 				self.startJoin()
 			elif int(msgId) == self.COMPLETE:
-				#if(self.existe()):
+				#if(self.exist()):
 				idArchivo = int.from_bytes(infoNodo[1:3], "big")
 				print("Revisando si el archivo está completo...")
 				ip_in = int.from_bytes(address[0:4], "big") #ip del nodo proveniente
@@ -216,21 +216,21 @@ class ClientNode():
 					print(n)
 
 	def completo(self, idArchivo, ip_in, puerto_in):
-		self.ip_reply = ip_in
-		self.port_reply = puerto_in
+		self.ip_reply = ip_in # guarda ip proveniente para usar en la respuesta
+		self.port_reply = puerto_in # guarda puerto proveniente para usar en la respuesta
 		for x in self.idVecinosArbol:
-			if (self.vecinos[x][1] != ip_in): #mandarselo a todos excepto del que viene
+			if (self.vecinos[x][1] != ip_in): # mandarselo a todos excepto del que viene
 				ip_out = vecinos[x][1]
 				puerto_out = vecinos[x][2]
 				msg = (self.COMPLETE).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(2, byteorder="big")
 				self.secureUDP.send(msg, ip_out, puerto_out)
 		direccion = os.getcwd() + "/" + self.CARPETA + "/" + str(self.nodoId) + "/" + str(idArchivo)
 		listaChunks = listdir(direccion)
-		tipo = (self.RCOMPLETE).to_bytes(1, byteorder="big")
-		for z in listaChunks: #aqui deberia ir un for que itere sobre todos los nombres de chunk
-			chunkID = (z).to_bytes(2, byteorder="big")
-			msg = tipo + chunkID #cada nombre del chunk
-			self.secureUDP.send(msg, ip_in, puerto_in)#mandar número de chunk
+		tipo = (self.RCOMPLETE).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(2, byteorder="big")
+		for z in listaChunks:
+			chunkID = (z).to_bytes(4, byteorder="big")
+			msg = tipo + chunkID
+			self.secureUDP.send(msg, ip_in, puerto_in) #mandar número de chunk
 
 	def localizar(self, idArchivo, ip, puerto):
 		pass

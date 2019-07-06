@@ -118,13 +118,14 @@ class nodoV():
         fileID = (idArchivo).to_bytes(2, byteorder="big") #Preguntar a Kathy si el id del archivo es del 32-63 o 32-63+idV
         msg = tipo + fileID
         self.secureUDPGREEN.send(msg, direccionIP, self.BLUE_PORT)
+        infoNodo, address = self.secureUDPGREEN.getMessage()
 
 
     def localizar(self):
         print("Digite el ID del archivo que quiere consultar: ")
         idArchivo = input()
         print("Digite IP del Azul con el que desea comunicarse: ")
-        direccionIP = input() 
+        direccionIP = input()
         print("Digite puerto de Azul con el que desea comunicarse: ")
         self.BLUE_PORT= int(input())
         tipo = (self.COMPLETO).to_bytes(1, byteorder="big")
