@@ -16,6 +16,7 @@ class nodoV():
         self.DEPOSITAR = 0
         self.EXISTE = 2
         self.COMPLETO = 4
+        self.RCOMPLETO = 5
         self.OBTENER = 6 #Get
         self.LOCALIZAR = 8
         self.ELIMINAR = 10
@@ -28,9 +29,10 @@ class nodoV():
         self.identificadorArchivo = 32 # 1 byte por ser el grupo 1 tenemos un rango de identificador de 32 a 63
         self.idVerde = idV #este se le suma a identificador de archivo
         self.chunksList = [] #lista de pares que relaciona un archivo con la cantidad de chunks que posee
+        self.listaChunkIDs = [] #lista de todos los chunkids de un acrhivo para la respuesta de complete
         self.secureUDPGREEN = secureUDP(self.localIP, self.GREEN_PORT)
-
-
+        hiloRecvVerde = Thread(target=self.receive, args=())
+		hiloRecvVerde.start()
 
     def menu(self):
         opcion = 1
@@ -59,6 +61,16 @@ class nodoV():
                 self.eliminar()
             elif opcion == 0:
                 sys.exit(0)
+
+    def receive(self): # hilo que se mantiene recibiendo respuestas a solicitudes
+		while True:
+			infoNodo, address = self.secureUDP.getMessage() # el contenido de infoNodo va a ser diferente dependiendo del tipo de respuesta
+			msgId = int(infoNodo[0])
+			if int(msgId) == self.RCOMPLETO:
+                chunkNum = int.from_bytes(infoNodo[3:7], "big")
+                id = int.from_bytes(infoNodo[1:3], "big")
+                self.rcompleto(id, chunkNum)
+				self.listaChunkIDs.clear()
 
 #dado un archivo debe dividirlo en tamaños de 1024bytes, añadir encabezado identificadorArchivo/idchunk
 #idchunk debe crearse cada vez acá comenzando en 0
@@ -119,30 +131,21 @@ class nodoV():
         msg = tipo + fileID
         self.secureUDPGREEN.send(msg, direccionIP, self.BLUE_PORT)
 
-        listTemp = []
-        timeout = time.time() + 1   # timer de 1 segundo
-        while True: # por 1 segundo recibe chunkIDs
-            infoNodo, address = self.secureUDPGREEN.getMessage()
-            chunkNum = int.from_bytes(infoNodo[3:7], "big")
-            listTemp.append(chunkNum)
-            if (time.time() > timeout):
-                break
-
-        listTemp = list(dict.fromkeys(listTemp)) # elimina duplicados de la lista
-
+    def rcompleto(self, id, chunkNum):
+        self.listaChunkIDs.append(chunkNum)
+        self.listaChunkIDs = list(dict.fromkeys(self.listaChunkIDs)) # elimina duplicados de la lista
         size = 0
-        for x, y in chunkList: # busca la cantidad de chunks que debería de tener un archivo
-            if (x == idArchivo):
+        for x, y in self.chunkList: # busca la cantidad de chunks que debería de tener un archivo
+            if (x == id):
                 size = y
                 break
 
-        if (len(listTemp)-1 == size):
+        if (len(self.listaChunkIDs)-1 == size):
             print("Archivo Completo!")
             return True
         else:
             print("Archivo Corrupto")
             return False
-
 
     def localizar(self):
         print("Digite el ID del archivo que quiere consultar: ")
