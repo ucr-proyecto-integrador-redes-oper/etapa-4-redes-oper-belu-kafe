@@ -138,7 +138,7 @@ class ClientNode():
 		numeroChunk = int.from_bytes(mensaje[4:8], "big")
 		idnodoFile = self.CARPETA + "/" + str(self.nodoId)
 		if os.path.exists(idnodoFile) == False:
-			 os.mkdir(idnodoFile)
+			 os.makedirs(idnodoFile)
 		direccion = idnodoFile + "/" + str(identArchivo)
 		nombreArchivoNuevo = direccion + "/" + str(numeroChunk) + ".txt"
 		chunk = mensaje[8:len(mensaje)]
@@ -179,7 +179,17 @@ class ClientNode():
 		self.connected = 1
 
 	def startJoin(self):
+		
+		while True:
+			cantidadDeVecinos = 0
+			for vecino in self.vecinos:
+				if vecino[1] != 0 and vecino[2] != 0:
+					cantidadDeVecinos += 1
+			if cantidadDeVecinos == len(self.vecinos):
+				break					
+		
 		print("Starting... joinTree")
+		
 		hiloJoin = Thread(target=self.joinTree, args=())
 		hiloJoin.start()
 
