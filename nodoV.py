@@ -112,11 +112,31 @@ class nodoV():
         direccionIP= input() #Deberia verificarse la direccion con un método de verificar público
         print("Digite puerto de Azul con el que desea comunicarse: ")
         self.BLUE_PORT= int(input())
+
         tipo = (self.COMPLETO).to_bytes(1, byteorder="big")
         fileID = (idArchivo).to_bytes(2, byteorder="big") #Preguntar a Kathy si el id del archivo es del 32-63 o 32-63+idV
         msg = tipo + fileID
         self.secureUDPGREEN.send(msg, direccionIP, self.BLUE_PORT)
+
+        listTemp = []
+        # creo que esto se deberia hacer while algo
         infoNodo, address = self.secureUDPGREEN.getMessage()
+        chunkNum = int.from_bytes(infoNodo[3:7], "big")
+        listTemp.append(chunkNum)
+        listTemp = list(dict.fromkeys(listTemp)) # elimina duplicados de la lista
+
+        size = 0
+        for x, y in chunkList: # busca la cantidad de chunks que debería de tener un archivo
+            if (x == idArchivo):
+                size = y
+                break
+
+        if (len(listTemp)-1 == size):
+            print("Archivo Completo!")
+            return True
+        else:
+            print("Archivo Corrupto")
+
 
 
     def localizar(self):
