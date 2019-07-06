@@ -18,6 +18,8 @@ class ClientNode():
 		self.REXIST = 3 #respuesta a exist solo posee id de archivo
 		self.COMPLETE = 4 #tipo de solicitud complete
 		self.RCOMPLETE = 5 #respuesta a complete
+		self.OBTENER = 6 #Get
+		self.ROBTENER = 7 #Respuesta Get
 		self.LOCALIZAR = 8
 		self.JOINTREE = 11
 		self.IDO = 12
@@ -179,7 +181,6 @@ class ClientNode():
 		self.connected = 1
 
 	def startJoin(self):
-		
 		while True:
 			cantidadDeVecinos = 0
 			for vecino in self.vecinos:
@@ -187,9 +188,7 @@ class ClientNode():
 					cantidadDeVecinos += 1
 			if cantidadDeVecinos == len(self.vecinos):
 				break					
-		
 		print("Starting... joinTree")
-		
 		hiloJoin = Thread(target=self.joinTree, args=())
 		hiloJoin.start()
 
@@ -241,6 +240,10 @@ class ClientNode():
 			chunkID = (z).to_bytes(4, byteorder="big")
 			msg = tipo + chunkID
 			self.secureUDP.send(msg, ip_in, puerto_in) #mandar número de chunk
+
+	#Metodo debe de hacer bcast a los demás azules, traer los chunks, sin repetir, y una vez que están todos pasarlos al verde solicitante
+	def obtener(self, idArchivo, ip_in, puerto_in):
+		pass
 
 	def localizar(self, idArchivo, ip, puerto):
 		pass

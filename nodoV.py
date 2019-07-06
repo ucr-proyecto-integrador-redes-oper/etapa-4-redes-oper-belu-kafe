@@ -18,6 +18,7 @@ class nodoV():
         self.COMPLETO = 4
         self.RCOMPLETO = 5
         self.OBTENER = 6 #Get
+        self.ROBTENER = 7 #Respuesta Get
         self.LOCALIZAR = 8
         self.ELIMINAR = 10
         self.BLUE_PORT = 0
@@ -71,6 +72,9 @@ class nodoV():
                 id = int.from_bytes(infoNodo[1:3], "big")
                 self.rcompleto(id, chunkNum)
                 self.listaChunkIDs.clear()
+            elif int(msgId) == self.ROBTENER:
+                #LLama a metodo encargado de procesar la respuesta obtenida
+                pass
 
 #dado un archivo debe dividirlo en tamaños de 1024bytes, añadir encabezado identificadorArchivo/idchunk
 #idchunk debe crearse cada vez acá comenzando en 0
@@ -111,7 +115,20 @@ class nodoV():
         return 0
 
     def obtener(self):#Debe buscar un archivo en el grafo y rearmarlo, dar algún tipo de referencia para el archivo, es como bajar  un archivo del sistema
+        print("Digite el ID del archivo que quiere obtener: ")
+        idArchivo = input()
+        print("Digite IP del Azul con el que desea comunicarse: ")#Azul encargado de hacer bcast entre los demás azules
+        direccionIP= input()
+        print("Digite puerto de Azul con el que desea comunicarse: ")
+        self.BLUE_PORT= int(input())
+        tipo = (self.OBTENER).to_bytes(1, byteorder="big")
+        fileID = (idArchivo).to_bytes(2, byteorder="big")
+        msg = tipo + fileID
+        self.secureUDPGREEN.send(msg, direccionIP, self.BLUE_PORT)
+
+    def robtener(self):
         pass
+
 
 
     def existe(self):
