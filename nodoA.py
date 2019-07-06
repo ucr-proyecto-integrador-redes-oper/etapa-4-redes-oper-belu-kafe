@@ -38,6 +38,8 @@ class ClientNode():
 		self.sendRequest()
 		self.ip_reply = 0 # para guardar la ip proveniente y usar en la respuesta del completo
 		self.port_reply = 0 # para guardar el puerto proveniente y usar en la respuesta del completo
+		self.ip_reply_obtener = 0 #para guardar la ip del verde solicitante del obtener
+		self.port_reply_obtener = 0 #para guardar el puerto del verde solicitante del obtener
 		hiloConsola = Thread(target=self.consola, args=())
 		hiloConsola.start()
 		hiloRecvAzul = Thread(target=self.receive, args=())
@@ -107,6 +109,16 @@ class ClientNode():
 				self.idVecinosArbol.append(idHijo)
 			elif int(msgId) == self.STARTJOIN:##un mensaje con solo ese numero que viene de los naranjas a todos los azules que asignó para que comiencen a unirse al grafo, cuando un nodo azul recibe esto pone a correr el hilo joinTree.
 				self.startJoin()
+
+			elif int(msgId) == self.OBTENER:
+				idArchivo = int.from_bytes(infoNodo[1:3], "big")
+				print("Procediendo a obtener el archivo con id ", idArchivo)
+				ip_in = int.from_bytes(address[0:4], "big") #ip del nodo proveniente
+				puerto_in = int.from_bytes(address[4:5], "big") #puerto del nodo proveniente
+				self.completo(idArchivo, ip_in, puerto_in)
+			elif int(msgId) == self.ROBTENER:
+				self.secureUDP.send(infoNodo, self.ip_reply_obtener, self.port_reply_obtener)
+
 			elif int(msgId) == self.COMPLETE:
 				#if(self.exist()):
 				idArchivo = int.from_bytes(infoNodo[1:3], "big")
@@ -243,7 +255,22 @@ class ClientNode():
 
 	#Metodo debe de hacer bcast a los demás azules, traer los chunks, sin repetir, y una vez que están todos pasarlos al verde solicitante
 	def obtener(self, idArchivo, ip_in, puerto_in):
-		pass
+		self.ip_reply_obtener = ip_in # guarda ip proveniente para usar en la respuesta
+		self.port_reply_obtener = puerto_in # guarda puerto proveniente para usar en la respuesta
+		for i in self.idVecinosArbol:
+			if (self.vecinos[i][1] != ip_in): # mandarselo a todos excepto del que viene
+				ip_out = vecinos[i][1]
+				puerto_out = vecinos[i][2]
+				msg = (self.OBTENER).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(2, byteorder="big")
+				self.secureUDP.send(msg, ip_out, puerto_out)
+		direccion = os.getcwd() + "/" + self.CARPETA + "/" + str(self.nodoId) + "/" + str(idArchivo)
+		listaChunks = os.listdir(direccion)
+		tipo = (self.ROBTENER).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(2, byteorder="big")
+		for j in listaChunks:
+			chunkID = (j).to_bytes(4, byteorder="big")
+			msg = tipo + chunkID
+			self.secureUDP.send(msg, ip_in, puerto_in) #mandar número de chunk ##########################################################3
+		
 
 	def localizar(self, idArchivo, ip, puerto):
 		pass

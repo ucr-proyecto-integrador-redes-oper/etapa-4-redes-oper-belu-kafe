@@ -30,6 +30,7 @@ class nodoV():
         self.identificadorArchivo = 32 # 1 byte por ser el grupo 1 tenemos un rango de identificador de 32 a 63
         self.idVerde = idV #este se le suma a identificador de archivo
         self.chunksList = [] #lista de pares que relaciona un archivo con la cantidad de chunks que posee
+        self.listaChunkIDs_obtener = [] #Lista de todos los chunkids de un acrhivo para la respuesta de obtener
         self.listaChunkIDs = [] #lista de todos los chunkids de un acrhivo para la respuesta de complete
         self.secureUDPGREEN = secureUDP(self.localIP, self.GREEN_PORT)
         hiloRecvVerde = Thread(target=self.receive, args=())
@@ -74,6 +75,10 @@ class nodoV():
                 self.listaChunkIDs.clear()
             elif int(msgId) == self.ROBTENER:
                 #LLama a metodo encargado de procesar la respuesta obtenida
+                chunkNum = int.from_bytes(infoNodo[3:7], "big")
+                id = int.from_bytes(infoNodo[1:3], "big")
+                self.robtener(id, chunkNum)
+                self.listaChunkIDs_obtener.clear()
                 pass
 
 #dado un archivo debe dividirlo en tamaños de 1024bytes, añadir encabezado identificadorArchivo/idchunk
@@ -126,8 +131,11 @@ class nodoV():
         msg = tipo + fileID
         self.secureUDPGREEN.send(msg, direccionIP, self.BLUE_PORT)
 
-    def robtener(self):
-        pass
+    def robtener(self, id, chunkNum):
+        self.listaChunkIDs_obtener.append(chunkNum) 
+        self.listaChunkIDs_obtener = list(dict.fromkeys(self.listaChunkIDs_obtener)) # elimina duplicados de la lista
+        
+
 
 
 
