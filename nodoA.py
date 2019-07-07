@@ -31,6 +31,7 @@ class ClientNode():
 		self.serverIP = serverIP
 		self.serverPort = serverPort
 		self.secureUDP = secureUDP(self.localIP, self.localPort)
+		self.max_diff_requests = 5
 		self.nodoId = 0
 		self.vecinos = []
 		self.connected = 0 # variable que dice si estoy conectado al joinTree
@@ -40,6 +41,7 @@ class ClientNode():
 		self.port_reply = 0 # para guardar el puerto proveniente y usar en la respuesta del completo
 		self.ip_reply_obtener = 0 #para guardar la ip del verde solicitante del obtener
 		self.port_reply_obtener = 0 #para guardar el puerto del verde solicitante del obtener
+		self.reqListLocate = []
 		hiloConsola = Thread(target=self.consola, args=())
 		hiloConsola.start()
 		hiloRecvAzul = Thread(target=self.receive, args=())
@@ -273,7 +275,48 @@ class ClientNode():
 		
 
 	def localizar(self, idArchivo, ip, puerto):
-		pass
+		self.processList(self.reqListLocate, idArchivo, ip, puerto)
+		for i in self.idVecinosArbol:
+			if (self.vecinos[i][1] != ip): # mandarselo a todos excepto de la fuente
+				ip_out = vecinos[i][1]
+				puerto_out = vecinos[i][2]
+				msg = (self.OBTENER).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(2, byteorder="big")
+				self.secureUDP.send(msg, ip_out, puerto_out)
+		direccion = os.getcwd() + "/" + self.CARPETA + "/" + str(self.nodoId) + "/" + str(idArchivo)
+		if os.path.exists(idnodoFile) == True:
+			msg = (self.RLOCATE).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(3, byteorder="big") + (self.nodoId).to_bytes(2, byteorder="big")
+			for request in self.reqListLocate:
+				if request[0] == idArchivo:
+					self.secureUDP.send(msg, request[1], request[2])
+
+
+	def processList(self, reqList, idArchivo, ip, puerto):
+		#Elementos de lista:
+		#IdArchivo
+		#IP del nodo azul que lo solicitó
+		#Puerto del nodo azul que lo solicitó
+		#Contador de cuántos paquetes se han recibido de otros idArchivo, si esto llega a 5, se descarta
+		repeatedRequest = False
+		#Aumentar contador a todos las otras solicitudes diferentes del idArchivo
+		for request in reqList:
+			#Si no soy la solicitud, aumento contador en 1
+			if request[0] != idArchivo:
+				request[3] += 1
+				#Si llego al máximo de contador, me elimino
+				if request[3] == self.max_diff_requests:
+					reqList.remove(request)
+			else:
+				#Si soy la misma solicitud con mismo ip y puerto de azul fuente
+				if request[1] == ip and request[2] == puerto:
+					repeatedRequest = True
+					request[3] = 0 #Reiniciamos contador
+				#Si no, solo reinicio contador
+				else:
+					request[3] = 0
+
+		if repeatedRequest == False:
+			req = [idArchivo, ip, puerto, 0]
+			reqList.append(req)
 
 def main():
 	myIp = ""
