@@ -21,6 +21,7 @@ class ClientNode():
 		self.OBTENER = 6 #Get
 		self.ROBTENER = 7 #Respuesta Get
 		self.LOCALIZAR = 8
+		self.RLOCALIZAR = 9
 		self.JOINTREE = 11
 		self.IDO = 12
 		self.DADDY = 13
@@ -284,7 +285,7 @@ class ClientNode():
 				self.secureUDP.send(msg, ip_out, puerto_out)
 		direccion = os.getcwd() + "/" + self.CARPETA + "/" + str(self.nodoId) + "/" + str(idArchivo)
 		if os.path.exists(idnodoFile) == True:
-			msg = (self.RLOCATE).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(3, byteorder="big") + (self.nodoId).to_bytes(2, byteorder="big")
+			msg = (self.RLOCALIZAR).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(3, byteorder="big") + (self.nodoId).to_bytes(2, byteorder="big")
 			for request in self.reqListLocate:
 				if request[0] == idArchivo:
 					self.secureUDP.send(msg, request[1], request[2])
@@ -292,10 +293,11 @@ class ClientNode():
 
 	def processList(self, reqList, idArchivo, ip, puerto):
 		#Elementos de lista:
-		#IdArchivo
-		#IP del nodo azul que lo solicitó
-		#Puerto del nodo azul que lo solicitó
-		#Contador de cuántos paquetes se han recibido de otros idArchivo, si esto llega a 5, se descarta
+		#[0] : IdArchivo
+		#[1] : IP del nodo azul que lo solicitó
+		#[2] : Puerto del nodo azul que lo solicitó
+		#[3} : Contador de cuántos paquetes se han recibido de otros idArchivo, si esto llega a 5, se descarta
+		
 		repeatedRequest = False
 		#Aumentar contador a todos las otras solicitudes diferentes del idArchivo
 		for request in reqList:
