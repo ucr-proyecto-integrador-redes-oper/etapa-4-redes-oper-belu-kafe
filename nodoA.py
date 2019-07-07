@@ -276,7 +276,7 @@ class ClientNode():
 		
 
 	def localizar(self, idArchivo, ip, puerto):
-		self.processList(self.reqListLocate, idArchivo, ip, puerto)
+		self.addRequest(self.reqListLocate, idArchivo, ip, puerto)
 		for i in self.idVecinosArbol:
 			if (self.vecinos[i][1] != ip): # mandarselo a todos excepto de la fuente
 				ip_out = vecinos[i][1]
@@ -286,19 +286,31 @@ class ClientNode():
 		direccion = os.getcwd() + "/" + self.CARPETA + "/" + str(self.nodoId) + "/" + str(idArchivo)
 		if os.path.exists(idnodoFile) == True:
 			msg = (self.RLOCALIZAR).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(3, byteorder="big") + (self.nodoId).to_bytes(2, byteorder="big")
+			
 			for request in self.reqListLocate:
 				if request[0] == idArchivo:
 					self.secureUDP.send(msg, request[1], request[2])
 
+	#Se llama cuando se recibe una solicitud
+	def addRequest(self, reqList, idArchivo, ip, puerto):
+		repeatedRequest = False
 
+		for request in reqList:
+			if request[0] == idArchivo and request[1] == ip and request[2] == puerto:
+				repeatedRequest = True
+		
+		#Si no estoy en la lista, me agrego
+		if repeatedRequest == False:
+			req = [idArchivo, ip, puerto, 0]
+			reqList.append(req)
+
+	#Se llama cuando se recibe una respuesta de solicitud
 	def processList(self, reqList, idArchivo, ip, puerto):
 		#Elementos de lista:
 		#[0] : IdArchivo
 		#[1] : IP del nodo azul que lo solicitó
 		#[2] : Puerto del nodo azul que lo solicitó
 		#[3} : Contador de cuántos paquetes se han recibido de otros idArchivo, si esto llega a 5, se descarta
-		
-		repeatedRequest = False
 		#Aumentar contador a todos las otras solicitudes diferentes del idArchivo
 		for request in reqList:
 			#Si no soy la solicitud, aumento contador en 1
@@ -308,17 +320,8 @@ class ClientNode():
 				if request[3] == self.max_diff_requests:
 					reqList.remove(request)
 			else:
-				#Si soy la misma solicitud con mismo ip y puerto de azul fuente
-				if request[1] == ip and request[2] == puerto:
-					repeatedRequest = True
-					request[3] = 0 #Reiniciamos contador
-				#Si no, solo reinicio contador
-				else:
+				#Si es mi solicitud, reinicio el contador
 					request[3] = 0
-
-		if repeatedRequest == False:
-			req = [idArchivo, ip, puerto, 0]
-			reqList.append(req)
 
 def main():
 	myIp = ""
