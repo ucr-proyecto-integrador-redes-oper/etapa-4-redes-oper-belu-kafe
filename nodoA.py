@@ -127,19 +127,21 @@ class ClientNode():
 
 			elif int(msgId) == self.COMPLETE:
 				#if(self.exist()):
-				idArchivo = int.from_bytes(infoNodo[1:3], "big")
+				idArchivo = int.from_bytes(infoNodo[1:4], "big")
 				print("Revisando si el archivo está completo...")
-				ip_in = int.from_bytes(address[0:4], "big") #ip del nodo proveniente
-				puerto_in = int.from_bytes(address[4:5], "big") #puerto del nodo proveniente
-				self.completo(idArchivo, ip_in, puerto_in)
+				self.completo(idArchivo, address[0], address[1])
 			elif int(msgId) == self.RCOMPLETE:
 				self.secureUDP.send(infoNodo, self.ip_reply, self.port_reply)
 			elif int(msgId) == self.LOCALIZAR:
-				idArchivo = int.from_bytes(infoNodo[1:3], "big")
-				ip = int.from_bytes(address[0:4], "big") #ip del nodo proveniente
-				puerto = int.from_bytes(address[4:5], "big") #puerto del nodo proveniente
+				idArchivo = int.from_bytes(infoNodo[1:4], "big")
 				print("Solicitud de localizar de archivo " + str(idArchivo))
-				self.localizar(idArchivo, ip, puerto)
+				self.localizar(idArchivo, address[0], address[1])
+			elif int(msgId) == self.RLOCALIZAR:
+				idArchivo = int.from_bytes(infoNodo[1:4], "big")
+				nodoId = int.from_bytes(infoNodo[4:6], "big")
+				print("Respuesta de localizar de archivo " + str(idArchivo) + " de el nodo " + str(nodoId))
+				self.respuestalocalizar(nodoId, idArchivo)
+
 
 	def exist(self, mensaje): #este exist no es el mismo de la solicitud EXISTE
 		identArchivo = int.from_bytes(mensaje[1:4], "big")
@@ -290,10 +292,14 @@ class ClientNode():
 		direccion = os.getcwd() + "/" + self.CARPETA + "/" + str(self.nodoId) + "/" + str(idArchivo)
 		if os.path.exists(idnodoFile) == True:
 			msg = (self.RLOCALIZAR).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(3, byteorder="big") + (self.nodoId).to_bytes(2, byteorder="big")
-			
-			for request in self.reqListLocate:
-				if request[0] == idArchivo:
-					self.secureUDP.send(msg, request[1], request[2])
+			self.secureUDP.send(msg, ip, puerto)
+
+	def respuestaLocalizar(self, nodoId, idArchivo):
+		self.processList(self.reqListLocate, idArchivo)
+		for request in self.reqListLocate:
+			if request[0] == idArchivo:
+				msg = (self.RLOCALIZAR).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(3, byteorder="big") + (nodoId).to_bytes(2, byteorder="big")
+				self.secureUDP.send(msg, request[1], request[2])
 
 	#Se llama cuando se recibe una solicitud
 	def addRequest(self, reqList, idArchivo, ip, puerto):
