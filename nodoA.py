@@ -43,6 +43,8 @@ class ClientNode():
 		self.ip_reply_obtener = 0 #para guardar la ip del verde solicitante del obtener
 		self.port_reply_obtener = 0 #para guardar el puerto del verde solicitante del obtener
 		self.reqListLocate = []
+		self.reqListObtener = []
+		self.ID_ARCHIVO_OBTENER = 0 #Para poder llamar al processList cuando recibí una respuesta de obtener
 		hiloConsola = Thread(target=self.consola, args=())
 		hiloConsola.start()
 		hiloRecvAzul = Thread(target=self.receive, args=())
@@ -114,12 +116,13 @@ class ClientNode():
 				self.startJoin()
 
 			elif int(msgId) == self.OBTENER:
-				idArchivo = int.from_bytes(infoNodo[1:3], "big")
-				print("Procediendo a obtener el archivo con id ", idArchivo)
+				self.ID_ARCHIVO_OBTENER = int.from_bytes(infoNodo[1:3], "big")
+				print("Procediendo a obtener el archivo con id ", self.ID_ARCHIVO_OBTENER)
 				ip_in = int.from_bytes(address[0:4], "big") #ip del nodo proveniente
 				puerto_in = int.from_bytes(address[4:5], "big") #puerto del nodo proveniente
-				self.completo(idArchivo, ip_in, puerto_in)
+				self.obtener(self.ID_ARCHIVO_OBTENER, ip_in, puerto_in)
 			elif int(msgId) == self.ROBTENER:
+				self.processList(self.reqListObtener, self.ID_ARCHIVO_OBTENER)
 				self.secureUDP.send(infoNodo, self.ip_reply_obtener, self.port_reply_obtener)
 
 			elif int(msgId) == self.COMPLETE:
@@ -258,8 +261,9 @@ class ClientNode():
 
 	#Metodo debe de hacer bcast a los demás azules, traer los chunks, sin repetir, y una vez que están todos pasarlos al verde solicitante
 	def obtener(self, idArchivo, ip_in, puerto_in):
-		self.ip_reply_obtener = ip_in # guarda ip proveniente para usar en la respuesta
-		self.port_reply_obtener = puerto_in # guarda puerto proveniente para usar en la respuesta
+		self.addRequest(self.reqListObtener, idArchivo, ip_in, puerto_in)
+		# self.ip_reply_obtener = ip_in # guarda ip proveniente para usar en la respuesta
+		# self.port_reply_obtener = puerto_in # guarda puerto proveniente para usar en la respuesta
 		for i in self.idVecinosArbol:
 			if (self.vecinos[i][1] != ip_in): # mandarselo a todos excepto del que viene
 				ip_out = vecinos[i][1]
@@ -305,12 +309,12 @@ class ClientNode():
 			reqList.append(req)
 
 	#Se llama cuando se recibe una respuesta de solicitud
-	def processList(self, reqList, idArchivo, ip, puerto):
+	def processList(self, reqList, idArchivo):
 		#Elementos de lista:
 		#[0] : IdArchivo
 		#[1] : IP del nodo azul que lo solicitó
 		#[2] : Puerto del nodo azul que lo solicitó
-		#[3} : Contador de cuántos paquetes se han recibido de otros idArchivo, si esto llega a 5, se descarta
+		#[3] : Contador de cuántos paquetes se han recibido de otros idArchivo, si esto llega a 5, se descarta
 		#Aumentar contador a todos las otras solicitudes diferentes del idArchivo
 		for request in reqList:
 			#Si no soy la solicitud, aumento contador en 1
