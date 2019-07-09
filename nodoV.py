@@ -24,6 +24,7 @@ class nodoV():
         self.OBTENER = 6 #Get
         self.ROBTENER = 7 #Respuesta Get
         self.LOCALIZAR = 8
+        self.RLOCALIZAR = 9
         self.ELIMINAR = 10
         self.BLUE_PORT = 0
         self.GREEN_PORT = 2000
@@ -36,6 +37,7 @@ class nodoV():
         self.chunksList = [] #lista de pares que relaciona un archivo con la cantidad de chunks que posee
         self.listaChunkIDs_obtener = [] #Lista de todos los chunkids de un acrhivo para la respuesta de obtener
         self.listaChunkIDs = [] #lista de todos los chunkids de un acrhivo para la respuesta de complete
+        self.listaLocalizar = []
         self.secureUDPGREEN = secureUDP(self.localIP, self.GREEN_PORT)
 
     def menu(self):
@@ -55,17 +57,20 @@ class nodoV():
                 self.depositar()
             elif opcion == 2:
                 self.obtener()
-                self.receive()
+                self.receive(self.ROBTENER)
             elif opcion == 3:
                 self.existe()
-                self.receive()
+                self.receive(self.REXISTE)
                 print("Hola existe")
             elif opcion == 4:
                 self.completo()
-                self.receive()
+                self.receive(self.RCOMPLETO)
             elif opcion == 5:
+                print("Digite el ID del archivo que quiere consultar: ")
+                idArchivo = int(input())
                 self.localizar()
                 self.receive()
+                self.rlocalizar(idArchivo)
             elif opcion == 6:
                 self.eliminar()
                 print("El archivo ha sido eliminado correctamentamente...")
@@ -75,32 +80,39 @@ class nodoV():
     def raise_timeout(self, signum, frame):
         raise TimeoutError
 
-    def receive(self): # hilo que se mantiene recibiendo respuestas a solicitudes
+    def receive(self, request): # hilo que se mantiene recibiendo respuestas a solicitudes
         #SIGALRM is only usable on a unix platform
         signal.signal(signal.SIGALRM, self.raise_timeout)
         #change 5 to however many seconds you need
-        signal.alarm(5)
+        signal.alarm(10)
+        print("Esperando respuesta...")
         while True:  
             try:
                 infoNodo, address = self.secureUDPGREEN.getMessage() # el contenido de infoNodo va a ser diferente dependiendo del tipo de respuesta
                 msgId = int(infoNodo[0])
-                if int(msgId) == self.RCOMPLETO:
-                    chunkNum = int.from_bytes(infoNodo[3:7], "big")
-                    id = int.from_bytes(infoNodo[1:3], "big")
-                    self.rcompleto(id, chunkNum)
-                    self.listaChunkIDs.clear()
-                elif int(msgId) == self.REXISTE:
-                    idArchivo =  int.from_bytes(infoNodo[1:4], "big")
-                    print("Si existe el archivo solicitado con id " + str(idArchivo))
-                elif int(msgId) == self.ROBTENER:
-                    #LLama a metodo encargado de procesar la respuesta obtenida
-                    chunkNum = int.from_bytes(infoNodo[3:7], "big")
-                    id = int.from_bytes(infoNodo[1:3], "big")
-                    self.robtener(id, chunkNum)
-                    self.listaChunkIDs_obtener.clear()
+                if msgId == request:
+                    if int(msgId) == self.RCOMPLETO:
+                        chunkNum = int.from_bytes(infoNodo[3:7], "big")
+                        id = int.from_bytes(infoNodo[1:3], "big")
+                        self.rcompleto(id, chunkNum)
+                        self.listaChunkIDs.clear()
+                    elif int(msgId) == self.REXISTE:
+                        idArchivo = int.from_bytes(infoNodo[1:4], "big")
+                        print("Si existe el archivo solicitado con id " + str(idArchivo))
+                    elif int(msgId) == self.ROBTENER:
+                        #LLama a metodo encargado de procesar la respuesta obtenida
+                        chunkNum = int.from_bytes(infoNodo[3:7], "big")
+                        id = int.from_bytes(infoNodo[1:3], "big")
+                        self.robtener(id, chunkNum)
+                        self.listaChunkIDs_obtener.clear()
+                    elif int(msgId) == self.RLOCALIZAR:
+                        idArchivo = int.from_bytes(infoNodo[1:4], "big")
+                        nodoId = int.from_bytes(infoNodo[4:6], "big")
+                        print("Respuesta de localizar de archivo " + str(idArchivo) + " de el nodo " + str(nodoId))
+                        self.listaLocalizar.append(nodoId)
             except TimeoutError:
-                if infoNodo == 0:
-                    break
+               break
+
 
 #dado un archivo debe dividirlo en tamaños de 1024bytes, añadir encabezado identificadorArchivo/idchunk
 #idchunk debe crearse cada vez acá comenzando en 0
@@ -141,6 +153,7 @@ class nodoV():
         self.chunksList.append(( identArchivo, identificadorChunk))
         self.contArchivo += 1
         return 0
+    
     def depositar(self):
         print("Digite la dirección del archivo que desea depositar: ")
         nombreArchivo = input()
@@ -151,7 +164,7 @@ class nodoV():
 
     def obtener(self):#Debe buscar un archivo en el grafo y rearmarlo, dar algún tipo de referencia para el archivo, es como bajar  un archivo del sistema
         print("Digite el ID del archivo que quiere obtener: ")
-        idArchivo = input()
+        idArchivo = int(input())
         print("Digite IP del Azul con el que desea comunicarse: ")#Azul encargado de hacer bcast entre los demás azules
         direccionIP= input()
         print("Digite puerto de Azul con el que desea comunicarse: ")
@@ -164,14 +177,10 @@ class nodoV():
     def robtener(self, id, chunkNum):
         self.listaChunkIDs_obtener.append(chunkNum) 
         self.listaChunkIDs_obtener = list(dict.fromkeys(self.listaChunkIDs_obtener)) # elimina duplicados de la lista
-        
-
-
-
 
     def existe(self):
         print("Digite el ID del archivo que quiere consultar: ")
-        idArchivo = input()
+        idArchivo = int(input())
         print("Digite IP del Azul con el que desea comunicarse: ")
         direccionIP= input() #Deberia verificarse la direccion con un método de verificar público
         print("Digite puerto de Azul con el que desea comunicarse: ")
@@ -181,12 +190,11 @@ class nodoV():
 
     def completo(self):
         print("Digite el ID del archivo que quiere consultar: ")
-        idArchivo = input()
+        idArchivo = int(input())
         print("Digite IP del Azul con el que desea comunicarse: ")
         direccionIP= input() #Deberia verificarse la direccion con un método de verificar público
         print("Digite puerto de Azul con el que desea comunicarse: ")
         self.BLUE_PORT= int(input())
-
         tipo = (self.COMPLETO).to_bytes(1, byteorder="big")
         fileID = (idArchivo).to_bytes(3, byteorder="big") #Preguntar a Kathy si el id del archivo es del 32-63 o 32-63+idV
         msg = tipo + fileID
@@ -209,8 +217,6 @@ class nodoV():
             return False
 
     def localizar(self):
-        print("Digite el ID del archivo que quiere consultar: ")
-        idArchivo = input()
         print("Digite IP del Azul con el que desea comunicarse: ")
         direccionIP = input()
         print("Digite puerto de Azul con el que desea comunicarse: ")
@@ -219,6 +225,15 @@ class nodoV():
         fileID = (idArchivo).to_bytes(2, byteorder="big")
         msg = tipo + fileID
         self.secureUDPGREEN.send(msg, direccionIP, self.BLUE_PORT)
+    
+    def rlocalizar(self, idArchivo):
+        localizaciones = "Archivos" + "/" + str("Localizaciones" + idArchivo) + ".csv"
+        os.makedirs(idnodoFile)
+        file = open(localizaciones, "w")
+        file.write(idArchivo)
+        for nodo in self.listaLocalizar:
+            file.write(nodo)
+	file.close()
 
     def eliminar(self):
         print("Digite el ID del archivo que desea eLiminar: ")
