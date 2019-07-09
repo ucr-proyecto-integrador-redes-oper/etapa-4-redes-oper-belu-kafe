@@ -15,6 +15,7 @@ class nodoV():
     def __init__(self, myIp, idV):  # constructor
         self.DEPOSITAR = 0
         self.EXISTE = 2
+        self.REXISTE = 3
         self.COMPLETO = 4
         self.RCOMPLETO = 5
         self.OBTENER = 6 #Get
@@ -61,18 +62,22 @@ class nodoV():
                 self.localizar()
             elif opcion == 6:
                 self.eliminar()
+                print("El archivo ha sido eliminado correctamentamente...")
             elif opcion == 0:
                 sys.exit(0)
 
     def receive(self): # hilo que se mantiene recibiendo respuestas a solicitudes
         while True:
-            infoNodo, address = self.secureUDP.getMessage() # el contenido de infoNodo va a ser diferente dependiendo del tipo de respuesta
+            infoNodo, address = self.secureUDPGREEN.getMessage() # el contenido de infoNodo va a ser diferente dependiendo del tipo de respuesta
             msgId = int(infoNodo[0])
             if int(msgId) == self.RCOMPLETO:
                 chunkNum = int.from_bytes(infoNodo[3:7], "big")
                 id = int.from_bytes(infoNodo[1:3], "big")
                 self.rcompleto(id, chunkNum)
                 self.listaChunkIDs.clear()
+            elif int(msgId) == self.REXISTE:
+                idArchivo =  int.from_bytes(infoNodo[1:4], "big")
+                print("Si existe el archivo solicitado con id " + str(idArchivo))
             elif int(msgId) == self.ROBTENER:
                 #LLama a metodo encargado de procesar la respuesta obtenida
                 chunkNum = int.from_bytes(infoNodo[3:7], "big")
@@ -99,6 +104,8 @@ class nodoV():
                 filesize -= self.CHUNKSIZE
                 tipo = (self.DEPOSITAR).to_bytes(1, byteorder="big")
                 idArchivo = (self.identificadorArchivo + self.idVerde).to_bytes(1, byteorder="big") + (self.contArchivo).to_bytes(2, byteorder="big")
+                idA = int.from_bytes(idArchivo, "big")
+                print("el id de archivo que depositó es " +str(idA))
                 idChunk = (identificadorChunk).to_bytes(4, byteorder="big")
                 encabezado = tipo + idArchivo + idChunk
                 msg = encabezado + contenido.encode('utf-8')
@@ -118,6 +125,13 @@ class nodoV():
         self.chunksList.append(( identArchivo, identificadorChunk))
         self.contArchivo += 1
         return 0
+    def depositar(self):
+        print("Digite la dirección del archivo que desea depositar: ")
+        nombreArchivo = input()
+        print("Digite IP del Azul con el que desea comunicarse: ")
+        direccionIP= input() #Deberia verificarse la direccion con un método de verificar público
+        print("Digite puerto de Azul con el que desea comunicarse: ")
+        self.BLUE_PORT= int(input())
 
     def obtener(self):#Debe buscar un archivo en el grafo y rearmarlo, dar algún tipo de referencia para el archivo, es como bajar  un archivo del sistema
         print("Digite el ID del archivo que quiere obtener: ")
@@ -140,7 +154,13 @@ class nodoV():
 
 
     def existe(self):
-        pass
+        print("Digite el ID del archivo que quiere consultar: ")
+        idArchivo = input()
+        print("Digite IP del Azul con el que desea comunicarse: ")
+        direccionIP= input() #Deberia verificarse la direccion con un método de verificar público
+        print("Digite puerto de Azul con el que desea comunicarse: ")
+        self.BLUE_PORT= int(input())
+        msg =(self.EXISTE).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(3, byteorder="big")
 
 
     def completo(self):
@@ -185,7 +205,13 @@ class nodoV():
         self.secureUDPGREEN.send(msg, direccionIP, self.BLUE_PORT)
 
     def eliminar(self):
-        pass
+        print("Digite el ID del archivo que desea eLiminar: ")
+        idArchivo = input()
+        print("Digite IP del Azul con el que desea comunicarse: ")
+        direccionIP= input() #Deberia verificarse la direccion con un método de verificar público
+        print("Digite puerto de Azul con el que desea comunicarse: ")
+        self.BLUE_PORT= int(input())
+        msg =(self.ELIMINAR).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(3, byteorder="big")
 
 def verificarIP(host):
     regex = r"\b(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b"

@@ -22,6 +22,7 @@ class ClientNode():
 		self.ROBTENER = 7 #Respuesta Get
 		self.LOCALIZAR = 8
 		self.RLOCALIZAR = 9
+		self.DELETE = 10
 		self.JOINTREE = 11
 		self.IDO = 12
 		self.DADDY = 13
@@ -43,6 +44,7 @@ class ClientNode():
 		self.ip_reply_obtener = 0 #para guardar la ip del verde solicitante del obtener
 		self.port_reply_obtener = 0 #para guardar el puerto del verde solicitante del obtener
 		self.reqListLocate = []
+		self.reqListExiste = []
 		self.reqListObtener = []
 		self.ID_ARCHIVO_OBTENER = 0 #Para poder llamar al processList cuando recibí una respuesta de obtener
 		hiloConsola = Thread(target=self.consola, args=())
@@ -97,51 +99,69 @@ class ClientNode():
 					self.vecinos.append(vecino)
 				print("Enviando Hello a " + str(vecino))
 				self.helloVecino(vecinoIP, vecinoPort)
-			elif int(msgId) == self.JOINTREE:#si recibo solicitud de unión respondo si estoy en el arbol
-				idSolicitud = int.from_bytes(infoNodo[1:3], "big")
-				print("Recibí una solicitud de " + str(idSolicitud))
-				self.Ido(idSolicitud)
-			elif int(msgId) == self.IDO:#si recibo un IDO veo si estoy conectado y si no envío un daddy y agrego a mi papa a la lista idVecinosArbol
-				print("Recibí un IDO")
-				if self.connected == 0:
-					idPadre = int.from_bytes(infoNodo[1:3], "big")
-					self.daddy(idPadre)
-					print("Me he unido al grafo mi ID: " + str(self.nodoId) +" el ID de mi padre: " +  str(idPadre))
-					self.idVecinosArbol.append(idPadre)
-			elif int(msgId) == self.DADDY:#si recibo un daddy agrego el id del nodo a mi lista de idVecinosArbol
-				idHijo= int.from_bytes(infoNodo[1:3], "big")
-				print("Recibí un daddy con " + str(idHijo))
-				self.idVecinosArbol.append(idHijo)
-			elif int(msgId) == self.STARTJOIN:##un mensaje con solo ese numero que viene de los naranjas a todos los azules que asignó para que comiencen a unirse al grafo, cuando un nodo azul recibe esto pone a correr el hilo joinTree.
-				self.startJoin()
+            elif int(msgId) == self.JOINTREE:#si recibo solicitud de unión respondo si estoy en el arbol
+                idSolicitud = int.from_bytes(infoNodo[1:3], "big")
+                print("Recibí una solicitud de " + str(idSolicitud))
+                self.Ido(idSolicitud)
+            elif int(msgId) == self.IDO:#si recibo un IDO veo si estoy conectado y si no envío un daddy y agrego a mi papa a la lista idVecinosArbol
+                print("Recibí un IDO")
+                if self.connected == 0:
+                    idPadre = int.from_bytes(infoNodo[1:3], "big")
+                    self.daddy(idPadre)
+                    print("Me he unido al grafo mi ID: " + str(self.nodoId) +" el ID de mi padre: " +  str(idPadre))
+                    self.idVecinosArbol.append(idPadre)
+            elif int(msgId) == self.DADDY:#si recibo un daddy agrego el id del nodo a mi lista de idVecinosArbol
+                idHijo= int.from_bytes(infoNodo[1:3], "big")
+                print("Recibí un daddy con " + str(idHijo))
+                self.idVecinosArbol.append(idHijo)
+            elif int(msgId) == self.STARTJOIN:##un mensaje con solo ese numero que viene de los naranjas a todos los azules que asignó para que comiencen a unirse al grafo, cuando un nodo azul recibe esto pone a correr el hilo joinTree.
+                self.startJoin()
 
-			elif int(msgId) == self.OBTENER:
-				self.ID_ARCHIVO_OBTENER = int.from_bytes(infoNodo[1:3], "big")
-				print("Procediendo a obtener el archivo con id ", self.ID_ARCHIVO_OBTENER)
-				ip_in = int.from_bytes(address[0:4], "big") #ip del nodo proveniente
-				puerto_in = int.from_bytes(address[4:5], "big") #puerto del nodo proveniente
-				self.obtener(self.ID_ARCHIVO_OBTENER, ip_in, puerto_in)
-			elif int(msgId) == self.ROBTENER:
-				self.processList(self.reqListObtener, self.ID_ARCHIVO_OBTENER)
-				self.secureUDP.send(infoNodo, self.ip_reply_obtener, self.port_reply_obtener)
+            elif int(msgId) == self.OBTENER:
+                self.ID_ARCHIVO_OBTENER = int.from_bytes(infoNodo[1:3], "big")
+                print("Procediendo a obtener el archivo con id ", self.ID_ARCHIVO_OBTENER)
+                ip_in = int.from_bytes(address[0:4], "big") #ip del nodo proveniente
+                puerto_in = int.from_bytes(address[4:5], "big") #puerto del nodo proveniente
+                self.obtener(self.ID_ARCHIVO_OBTENER, ip_in, puerto_in)
+            elif int(msgId) == self.ROBTENER:
+                self.processList(self.reqListObtener, self.ID_ARCHIVO_OBTENER)
+                self.secureUDP.send(infoNodo, self.ip_reply_obtener, self.port_reply_obtener)
 
-			elif int(msgId) == self.COMPLETE:
-				#if(self.exist()):
-				idArchivo = int.from_bytes(infoNodo[1:4], "big")
-				print("Revisando si el archivo está completo...")
-				self.completo(idArchivo, address[0], address[1])
-			elif int(msgId) == self.RCOMPLETE:
-				self.secureUDP.send(infoNodo, self.ip_reply, self.port_reply)
-			elif int(msgId) == self.LOCALIZAR:
-				idArchivo = int.from_bytes(infoNodo[1:4], "big")
-				print("Solicitud de localizar de archivo " + str(idArchivo))
-				self.localizar(idArchivo, address[0], address[1])
-			elif int(msgId) == self.RLOCALIZAR:
-				idArchivo = int.from_bytes(infoNodo[1:4], "big")
-				nodoId = int.from_bytes(infoNodo[4:6], "big")
-				print("Respuesta de localizar de archivo " + str(idArchivo) + " de el nodo " + str(nodoId))
-				self.respuestalocalizar(nodoId, idArchivo)
-
+            elif int(msgId) == self.COMPLETE:
+                #if(self.exist()):
+                idArchivo = int.from_bytes(infoNodo[1:4], "big")
+                print("Revisando si el archivo está completo...")
+                self.completo(idArchivo, address[0], address[1])
+            elif int(msgId) == self.RCOMPLETE:
+                self.secureUDP.send(infoNodo, self.ip_reply, self.port_reply)
+            elif int(msgId) == self.LOCALIZAR:
+                idArchivo = int.from_bytes(infoNodo[1:4], "big")
+                print("Solicitud de localizar de archivo " + str(idArchivo))
+                self.localizar(idArchivo, address[0], address[1])
+            elif int(msgId) == self.RLOCALIZAR:
+                idArchivo = int.from_bytes(infoNodo[1:4], "big")
+                nodoId = int.from_bytes(infoNodo[4:6], "big")
+                print("Respuesta de localizar de archivo " + str(idArchivo) + " de el nodo " + str(nodoId))
+                self.respuestalocalizar(nodoId, idArchivo)
+            elif  int(msgId) == self.EXISTE:
+                if exist(infoNodo) == True:
+                    msg = (self.REXIST).to_bytes(1, byteorder="big") + infoNodo[1:4]
+                    self.secureUDP.send(msg, address[0], address[1]);
+                else:
+                    msgExiste(infoNodo, address[0], address[1])
+            elif  int(msgId) == self.REXISTE:
+                idArchivo = int.from_bytes(infoNodo[1:4], "big")
+                self.processList(self.reqListExiste, idArchivo)
+            elif  int(msgId) == self.DELETE:
+                idArchivo = int.from_bytes(infoNodo[1:4], "big")
+                delete(idArchivo)
+                
+    def delete(self, idArchivo):
+		idnodoFile = self.CARPETA + "/" + str(self.nodoId)
+		direccion = idnodoFile + "/" + str(idArchivo)
+		if os.path.exists(direccion):
+            print("eliminando archivo con id " + str(idArchivo))
+            os.removedirs(direccion)
 
 	def exist(self, mensaje): #este exist no es el mismo de la solicitud EXISTE
 		identArchivo = int.from_bytes(mensaje[1:4], "big")
@@ -152,6 +172,16 @@ class ClientNode():
 			return True
 		else:
 			return False
+        
+    def msgExiste(self, mensaje, ip_in, puerto_in)
+        idArchivo = int.from_bytes(mensaje[1:4], "big")
+        self.addRequest(self.reqListExiste, idArchivo, ip, puerto)
+        for x in self.idVecinosArbol:
+			if (self.vecinos[x][1] != ip_in): # mandarselo a todos excepto del que viene
+				ip_out = vecinos[x][1]
+				puerto_out = vecinos[x][2]
+				self.secureUDP.send(mensaje, ip_out, puerto_out)
+            
 
 	def depositar(self, mensaje): ##si tiene que depositar mensaje se va a la carpeta Archivos en esta carpeta abran otras carpetas las cuales se
 		#identifican con el id de nodo, y luego otras con identificador de archivo si la carpeta existe solo añade el nuevo chunk
