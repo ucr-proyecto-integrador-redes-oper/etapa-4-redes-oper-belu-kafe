@@ -13,8 +13,8 @@ import signal
 from contextlib import contextmanager
 
 class nodoV():
-
-	# constructor de la clase nodo
+    
+    # constructor de la clase nodo
     def __init__(self, myIp, idV):  # constructor
         self.DEPOSITAR = 0
         self.EXISTE = 2
@@ -72,33 +72,16 @@ class nodoV():
             elif opcion == 0:
                 sys.exit(0)
 
-#############################################################################
-    def timeout(self, time):
-        # Register a function to raise a TimeoutError on the signal.
-        signal.signal(signal.SIGALRM, self.raise_timeout)
-    	# Schedule the signal to be sent after ``time``.
-        signal.alarm(time)
-
-        try:
-            yield
-        except TimeoutError:
-            pass
-        finally:
-            # Unregister the signal so it won't be triggered
-        	# if the timeout is not reached.
-            signal.signal(signal.SIGALRM, signal.SIG_IGN)
-
     def raise_timeout(self, signum, frame):
         raise TimeoutError
 
-##############################################################################
-
-
-
-
     def receive(self): # hilo que se mantiene recibiendo respuestas a solicitudes
-        while True:
-            with self.timeout(5):
+        #SIGALRM is only usable on a unix platform
+        signal.signal(signal.SIGALRM, self.raise_timeout)
+        #change 5 to however many seconds you need
+        signal.alarm(5)
+        while True:  
+            try:
                 infoNodo, address = self.secureUDPGREEN.getMessage() # el contenido de infoNodo va a ser diferente dependiendo del tipo de respuesta
                 msgId = int(infoNodo[0])
                 if int(msgId) == self.RCOMPLETO:
@@ -115,8 +98,9 @@ class nodoV():
                     id = int.from_bytes(infoNodo[1:3], "big")
                     self.robtener(id, chunkNum)
                     self.listaChunkIDs_obtener.clear()
-            if infoNodo == 0:
-                break
+            except TimeoutError:
+                if infoNodo == 0:
+                    break
 
 #dado un archivo debe dividirlo en tamaños de 1024bytes, añadir encabezado identificadorArchivo/idchunk
 #idchunk debe crearse cada vez acá comenzando en 0
