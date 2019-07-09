@@ -9,6 +9,9 @@ import time
 import re # Para usar RegEx (Expresiones Regulares)
 import os
 
+import signal
+from contextlib import contextmanager
+
 class nodoV():
 
 	# constructor de la clase nodo
@@ -34,8 +37,6 @@ class nodoV():
         self.listaChunkIDs_obtener = [] #Lista de todos los chunkids de un acrhivo para la respuesta de obtener
         self.listaChunkIDs = [] #lista de todos los chunkids de un acrhivo para la respuesta de complete
         self.secureUDPGREEN = secureUDP(self.localIP, self.GREEN_PORT)
-        hiloRecvVerde = Thread(target=self.receive, args=())
-        hiloRecvVerde.start()
 
     def menu(self):
         opcion = 1
@@ -54,37 +55,69 @@ class nodoV():
                 self.depositar()
             elif opcion == 2:
                 self.obtener()
+				self.receive()
             elif opcion == 3:
                 self.existe()
+				self.receive()
             elif opcion == 4:
                 self.completo()
+				self.receive()
             elif opcion == 5:
                 self.localizar()
+				self.receive()
             elif opcion == 6:
                 self.eliminar()
                 print("El archivo ha sido eliminado correctamentamente...")
             elif opcion == 0:
                 sys.exit(0)
 
+#############################################################################
+	def timeout(self, time):
+    	# Register a function to raise a TimeoutError on the signal.
+    	signal.signal(signal.SIGALRM, self.raise_timeout).
+    	# Schedule the signal to be sent after ``time``.
+    	signal.alarm(time)
+
+    	try:
+        	yield
+    	except TimeoutError:
+        	pass
+    	finally:
+        	# Unregister the signal so it won't be triggered
+        	# if the timeout is not reached.
+        	signal.signal(signal.SIGALRM, signal.SIG_IGN)
+
+	def raise_timeout(self, signum, frame):
+		raise TimeoutError
+
+##############################################################################
+
+
+
+
     def receive(self): # hilo que se mantiene recibiendo respuestas a solicitudes
         while True:
-            infoNodo, address = self.secureUDPGREEN.getMessage() # el contenido de infoNodo va a ser diferente dependiendo del tipo de respuesta
-            msgId = int(infoNodo[0])
-            if int(msgId) == self.RCOMPLETO:
-                chunkNum = int.from_bytes(infoNodo[3:7], "big")
-                id = int.from_bytes(infoNodo[1:3], "big")
-                self.rcompleto(id, chunkNum)
-                self.listaChunkIDs.clear()
-            elif int(msgId) == self.REXISTE:
-                idArchivo =  int.from_bytes(infoNodo[1:4], "big")
-                print("Si existe el archivo solicitado con id " + str(idArchivo))
-            elif int(msgId) == self.ROBTENER:
-                #LLama a metodo encargado de procesar la respuesta obtenida
-                chunkNum = int.from_bytes(infoNodo[3:7], "big")
-                id = int.from_bytes(infoNodo[1:3], "big")
-                self.robtener(id, chunkNum)
-                self.listaChunkIDs_obtener.clear()
-                pass
+			with self.timeout(5):
+		        infoNodo, address = self.secureUDPGREEN.getMessage() # el contenido de infoNodo va a ser diferente dependiendo del tipo de respuesta
+		        msgId = int(infoNodo[0])
+		        if int(msgId) == self.RCOMPLETO:
+		            chunkNum = int.from_bytes(infoNodo[3:7], "big")
+		            id = int.from_bytes(infoNodo[1:3], "big")
+		            self.rcompleto(id, chunkNum)
+		            self.listaChunkIDs.clear()
+		        elif int(msgId) == self.REXISTE:
+		            idArchivo =  int.from_bytes(infoNodo[1:4], "big")
+		            print("Si existe el archivo solicitado con id " + str(idArchivo))
+		        elif int(msgId) == self.ROBTENER:
+		            #LLama a metodo encargado de procesar la respuesta obtenida
+		            chunkNum = int.from_bytes(infoNodo[3:7], "big")
+		            id = int.from_bytes(infoNodo[1:3], "big")
+		            self.robtener(id, chunkNum)
+		            self.listaChunkIDs_obtener.clear()
+		            pass
+
+			if infoNodo == 0:
+				break
 
 #dado un archivo debe dividirlo en tamaños de 1024bytes, añadir encabezado identificadorArchivo/idchunk
 #idchunk debe crearse cada vez acá comenzando en 0
@@ -141,7 +174,7 @@ class nodoV():
         print("Digite puerto de Azul con el que desea comunicarse: ")
         self.BLUE_PORT= int(input())
         tipo = (self.OBTENER).to_bytes(1, byteorder="big")
-        fileID = (idArchivo).to_bytes(2, byteorder="big")
+        fileID = (idArchivo).to_bytes(3, byteorder="big")
         msg = tipo + fileID
         self.secureUDPGREEN.send(msg, direccionIP, self.BLUE_PORT)
 
@@ -172,7 +205,7 @@ class nodoV():
         self.BLUE_PORT= int(input())
 
         tipo = (self.COMPLETO).to_bytes(1, byteorder="big")
-        fileID = (idArchivo).to_bytes(2, byteorder="big") #Preguntar a Kathy si el id del archivo es del 32-63 o 32-63+idV
+        fileID = (idArchivo).to_bytes(3, byteorder="big") #Preguntar a Kathy si el id del archivo es del 32-63 o 32-63+idV
         msg = tipo + fileID
         self.secureUDPGREEN.send(msg, direccionIP, self.BLUE_PORT)
 
