@@ -55,16 +55,17 @@ class nodoV():
                 self.depositar()
             elif opcion == 2:
                 self.obtener()
-				self.receive()
+                self.receive()
             elif opcion == 3:
                 self.existe()
-				self.receive()
+                self.receive()
+                print("Hola existe")
             elif opcion == 4:
                 self.completo()
-				self.receive()
+                self.receive()
             elif opcion == 5:
                 self.localizar()
-				self.receive()
+                self.receive()
             elif opcion == 6:
                 self.eliminar()
                 print("El archivo ha sido eliminado correctamentamente...")
@@ -72,23 +73,23 @@ class nodoV():
                 sys.exit(0)
 
 #############################################################################
-	def timeout(self, time):
-    	# Register a function to raise a TimeoutError on the signal.
-    	signal.signal(signal.SIGALRM, self.raise_timeout).
+    def timeout(self, time):
+        # Register a function to raise a TimeoutError on the signal.
+        signal.signal(signal.SIGALRM, self.raise_timeout)
     	# Schedule the signal to be sent after ``time``.
-    	signal.alarm(time)
+        signal.alarm(time)
 
-    	try:
-        	yield
-    	except TimeoutError:
-        	pass
-    	finally:
-        	# Unregister the signal so it won't be triggered
+        try:
+            yield
+        except TimeoutError:
+            pass
+        finally:
+            # Unregister the signal so it won't be triggered
         	# if the timeout is not reached.
-        	signal.signal(signal.SIGALRM, signal.SIG_IGN)
+            signal.signal(signal.SIGALRM, signal.SIG_IGN)
 
-	def raise_timeout(self, signum, frame):
-		raise TimeoutError
+    def raise_timeout(self, signum, frame):
+        raise TimeoutError
 
 ##############################################################################
 
@@ -97,12 +98,12 @@ class nodoV():
 
     def receive(self): # hilo que se mantiene recibiendo respuestas a solicitudes
         while True:
-			with self.timeout(5):
-		        infoNodo, address = self.secureUDPGREEN.getMessage() # el contenido de infoNodo va a ser diferente dependiendo del tipo de respuesta
-		        msgId = int(infoNodo[0])
-		        if int(msgId) == self.RCOMPLETO:
-		            chunkNum = int.from_bytes(infoNodo[3:7], "big")
-		            id = int.from_bytes(infoNodo[1:3], "big")
+            with self.timeout(5):
+                infoNodo, address = self.secureUDPGREEN.getMessage() # el contenido de infoNodo va a ser diferente dependiendo del tipo de respuesta
+                msgId = int(infoNodo[0])
+                if int(msgId) == self.RCOMPLETO:
+                    chunkNum = int.from_bytes(infoNodo[3:7], "big")
+                    id = int.from_bytes(infoNodo[1:3], "big")
 		            self.rcompleto(id, chunkNum)
 		            self.listaChunkIDs.clear()
 		        elif int(msgId) == self.REXISTE:
