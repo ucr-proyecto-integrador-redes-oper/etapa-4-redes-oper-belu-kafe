@@ -220,11 +220,12 @@ class nodoV():
         self.secureUDPGREEN.send(msg, direccionIP, self.BLUE_PORT)
     
     def rlocalizar(self, idArchivo):
-        localizaciones =  self.CARPETA + "/Localizaciones/" + str(idArchivo) + ".csv"
+        localizaciones =  self.CARPETA + "/Localizaciones/" 
         if not os.path.exists(localizaciones):
             os.makedirs(localizaciones)
-        file = open(localizaciones, "w")
-        file.write(idArchivo + ": ")
+        nombreArchivoNuevo = localizaciones + str(idArchivo)
+        file = open(nombreArchivoNuevo, "w")
+        file.write(str(idArchivo) + ": ")
         for nodo in self.listaLocalizar:
             file.write(str(nodo) + ",")
         file.close()
