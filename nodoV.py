@@ -87,7 +87,7 @@ class nodoV():
         #change 5 to however many seconds you need
         signal.alarm(10)
         print("Esperando respuesta...")
-        while True:  
+        while True:
             try:
                 infoNodo, address = self.secureUDPGREEN.getMessage() # el contenido de infoNodo va a ser diferente dependiendo del tipo de respuesta
                 msgId = int(infoNodo[0])
@@ -225,7 +225,7 @@ class nodoV():
             os.makedirs(localizaciones)
         nombreArchivoNuevo = localizaciones + str(idArchivo)
         file = open(nombreArchivoNuevo, "w")
-        file.write(str(idArchivo) + ": ")
+        file.write(str(idArchivo) + ", ")
         for nodo in self.listaLocalizar:
             file.write(str(nodo) + ",")
         file.close()

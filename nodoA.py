@@ -64,8 +64,10 @@ class ClientNode():
 	def receive(self):
 		print("mi puerto: " + str(self.localPort))
 		while True:
+			
 			infoNodo, address = self.secureUDP.getMessage()
 			msgId = int(infoNodo[0])
+			
 			if int(msgId) == self.DEPOSITAR:
 				accion = random.randint(0, 100)
 				if accion < 60:#si accion es par va a enviar y depositar
@@ -75,12 +77,14 @@ class ClientNode():
 					self.depositar(infoNodo)
 				else:
 					self.depositar(infoNodo)
+			
 			elif int(msgId) == self.HELLO:
 				vecinoId = int.from_bytes(infoNodo[1:3], "big")
 				vecinoIP = ip_tuple_to_str(ip_to_int_tuple(infoNodo[3:7]))
 				vecinoPort = int.from_bytes(infoNodo[7:9],"big")
 				print("Actualizando vecino " + str(vecinoId) + " con IP " + vecinoIP + " con puerto " + str(vecinoPort))
 				self.actualizarVecinos(vecinoId, vecinoIP, vecinoPort)
+			
 			elif int(msgId) == 15: #YOUR GRAPH POSITION cuando no hay info del vecino
 				self.nodoId = int.from_bytes(infoNodo[1:3], "big")
 				vecino = int.from_bytes(infoNodo[3:5],"big")
@@ -88,6 +92,7 @@ class ClientNode():
 				if self.isRepeated(vecino) == False:
 					vecino = [vecino, 0, 0]
 					self.vecinos.append(vecino)
+			
 			elif int(msgId) == 16: #YOUR GRAPH POSITION cuando hay info del vecino
 				self.nodoId = int.from_bytes(infoNodo[1:3], "big")
 				vecino = int.from_bytes(infoNodo[3:5],"big")
@@ -99,10 +104,12 @@ class ClientNode():
 					self.vecinos.append(vecino)
 				print("Enviando Hello a " + str(vecino))
 				self.helloVecino(vecinoIP, vecinoPort)
+			
 			elif int(msgId) == self.JOINTREE:#si recibo solicitud de unión respondo si estoy en el arbol
 				idSolicitud = int.from_bytes(infoNodo[1:3], "big")
 				print("Recibí una solicitud de " + str(idSolicitud))
 				self.Ido(idSolicitud)
+			
 			elif int(msgId) == self.IDO:#si recibo un IDO veo si estoy conectado y si no envío un daddy y agrego a mi papa a la lista idVecinosArbol
 				print("Recibí un IDO")
 				if self.connected == 0:
@@ -110,18 +117,22 @@ class ClientNode():
 					self.daddy(idPadre)
 					print("Me he unido al grafo mi ID: " + str(self.nodoId) +" el ID de mi padre: " +  str(idPadre))
 					self.idVecinosArbol.append(idPadre)
+			
 			elif int(msgId) == self.DADDY:#si recibo un daddy agrego el id del nodo a mi lista de idVecinosArbol
 				idHijo= int.from_bytes(infoNodo[1:3], "big")
 				print("Recibí un daddy con " + str(idHijo))
 				self.idVecinosArbol.append(idHijo)
+			
 			elif int(msgId) == self.STARTJOIN:##un mensaje con solo ese numero que viene de los naranjas a todos los azules que asignó para que comiencen a unirse al grafo, cuando un nodo azul recibe esto pone a correr el hilo joinTree.
 				self.startJoin()
+			
 			elif int(msgId) == self.OBTENER:
 				self.ID_ARCHIVO_OBTENER = int.from_bytes(infoNodo[1:3], "big")
 				print("Procediendo a obtener el archivo con id ", self.ID_ARCHIVO_OBTENER)
 				ip_in = int.from_bytes(address[0:4], "big") #ip del nodo proveniente
 				puerto_in = int.from_bytes(address[4:5], "big") #puerto del nodo proveniente
 				self.obtener(self.ID_ARCHIVO_OBTENER, ip_in, puerto_in)
+			
 			elif int(msgId) == self.ROBTENER:
 				self.processList(self.reqListObtener, self.ID_ARCHIVO_OBTENER)
 				self.secureUDP.send(infoNodo, self.ip_reply_obtener, self.port_reply_obtener)
@@ -131,26 +142,32 @@ class ClientNode():
 				idArchivo = int.from_bytes(infoNodo[1:4], "big")
 				print("Revisando si el archivo está completo...")
 				self.completo(idArchivo, address[0], address[1])
+			
 			elif int(msgId) == self.RCOMPLETE:
 				self.secureUDP.send(infoNodo, self.ip_reply, self.port_reply)
+			
 			elif int(msgId) == self.LOCALIZAR:
 				idArchivo = int.from_bytes(infoNodo[1:4], "big")
 				print("Solicitud de localizar de archivo " + str(idArchivo))
 				self.localizar(idArchivo, address[0], address[1])
+			
 			elif int(msgId) == self.RLOCALIZAR:
 				idArchivo = int.from_bytes(infoNodo[1:4], "big")
 				nodoId = int.from_bytes(infoNodo[4:6], "big")
 				print("Respuesta de localizar de archivo " + str(idArchivo) + " de el nodo " + str(nodoId))
 				self.respuestalocalizar(nodoId, idArchivo)
-			elif  int(msgId) == self.EXISTE:
+			
+			elif int(msgId) == self.EXISTE:
 				if exist(infoNodo) == True:
 					msg = (self.REXIST).to_bytes(1, byteorder="big") + infoNodo[1:4]
 					self.secureUDP.send(msg, address[0], address[1]);
 				else:
 					msgExiste(infoNodo, address[0], address[1])
+			
 			elif  int(msgId) == self.REXISTE:
 				idArchivo = int.from_bytes(infoNodo[1:4], "big")
 				self.processList(self.reqListExiste, idArchivo)
+			
 			elif  int(msgId) == self.DELETE:
 				idArchivo = int.from_bytes(infoNodo[1:4], "big")
 				delete(idArchivo)
@@ -283,11 +300,11 @@ class ClientNode():
 		for x in self.idVecinosArbol:
 			ip, puerto = self.findIPPuerto(x)
 			if ( ip != ip_in): # mandarselo a todos excepto del que viene
-				msg = (self.COMPLETE).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(2, byteorder="big")
+				msg = (self.COMPLETE).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(3, byteorder="big")
 				self.secureUDP.send(msg, ip, puerto)
 		direccion = os.getcwd() + "/" + self.CARPETA + "/" + str(self.nodoId) + "/" + str(idArchivo)
 		listaChunks = listdir(direccion)
-		tipo = (self.RCOMPLETE).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(2, byteorder="big")
+		tipo = (self.RCOMPLETE).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(3, byteorder="big")
 		for z in listaChunks:
 			chunkID = (z).to_bytes(4, byteorder="big")
 			msg = tipo + chunkID
@@ -301,11 +318,11 @@ class ClientNode():
 		for x in self.idVecinosArbol:
 			ip, puerto = self.findIPPuerto(x)
 			if ( ip != ip_in): # mandarselo a todos excepto del que viene
-				msg = (self.OBTENER).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(2, byteorder="big")
+				msg = (self.OBTENER).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(3, byteorder="big")
 				self.secureUDP.send(msg, ip, puerto)
 		direccion = os.getcwd() + "/" + self.CARPETA + "/" + str(self.nodoId) + "/" + str(idArchivo)
 		listaChunks = os.listdir(direccion)
-		tipo = (self.ROBTENER).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(2, byteorder="big")
+		tipo = (self.ROBTENER).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(3, byteorder="big")
 		for j in listaChunks:
 			chunkID = (j).to_bytes(4, byteorder="big")
 			msg = tipo + chunkID
@@ -317,7 +334,7 @@ class ClientNode():
 		for x in self.idVecinosArbol:
 			ip, puerto = self.findIPPuerto(x)
 			if ( ip != ip_in): # mandarselo a todos excepto del que viene
-				msg = (self.LOCALIZAR).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(2, byteorder="big")
+				msg = (self.LOCALIZAR).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(3, byteorder="big")
 				self.secureUDP.send(msg, ip, puerto)
 		direccion = os.getcwd() + "/" + self.CARPETA + "/" + str(self.nodoId) + "/" + str(idArchivo)
 		if os.path.exists(idnodoFile) == True:
