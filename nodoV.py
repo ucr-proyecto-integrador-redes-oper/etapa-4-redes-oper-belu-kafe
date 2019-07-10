@@ -69,8 +69,8 @@ class nodoV():
             elif opcion == 5:
                 print("Digite el ID del archivo que quiere consultar: ")
                 idArchivo = int(input())
-                self.localizar()
-                self.receive()
+                self.localizar(idArchivo)
+                self.receive(self.RLOCALIZAR)
                 self.rlocalizar(idArchivo)
             elif opcion == 6:
                 self.eliminar()
@@ -154,14 +154,6 @@ class nodoV():
         self.chunksList.append(( identArchivo, identificadorChunk))
         self.contArchivo += 1
         return 0
-    
-    def depositar(self):
-        print("Digite la dirección del archivo que desea depositar: ")
-        nombreArchivo = input()
-        print("Digite IP del Azul con el que desea comunicarse: ")
-        direccionIP= input() #Deberia verificarse la direccion con un método de verificar público
-        print("Digite puerto de Azul con el que desea comunicarse: ")
-        self.BLUE_PORT= int(input())
 
     def obtener(self):#Debe buscar un archivo en el grafo y rearmarlo, dar algún tipo de referencia para el archivo, es como bajar  un archivo del sistema
         print("Digite el ID del archivo que quiere obtener: ")
@@ -217,24 +209,25 @@ class nodoV():
             print("Archivo Corrupto")
             return False
 
-    def localizar(self):
+    def localizar(self, idArchivo):
         print("Digite IP del Azul con el que desea comunicarse: ")
         direccionIP = input()
         print("Digite puerto de Azul con el que desea comunicarse: ")
-        self.BLUE_PORT= int(input())
-        tipo = (self.COMPLETO).to_bytes(1, byteorder="big")
-        fileID = (idArchivo).to_bytes(2, byteorder="big")
+        self.BLUE_PORT = int(input())
+        tipo = (self.LOCALIZAR).to_bytes(1, byteorder="big")
+        fileID = (idArchivo).to_bytes(3, byteorder="big")
         msg = tipo + fileID
         self.secureUDPGREEN.send(msg, direccionIP, self.BLUE_PORT)
     
     def rlocalizar(self, idArchivo):
         localizaciones =  self.CARPETA + "/Localizaciones/" + str(idArchivo) + ".csv"
-        os.makedirs(idnodoFile)
+        if not os.path.exists(localizaciones):
+            os.makedirs(localizaciones)
         file = open(localizaciones, "w")
-        file.write(idArchivo)
+        file.write(idArchivo + ": ")
         for nodo in self.listaLocalizar:
-            file.write(nodo)
-	file.close()
+            file.write(str(nodo) + ",")
+        file.close()
 
     def eliminar(self):
         print("Digite el ID del archivo que desea eLiminar: ")
