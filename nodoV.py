@@ -29,6 +29,7 @@ class nodoV():
         self.BLUE_PORT = 0
         self.GREEN_PORT = 2000
         self.CHUNKSIZE = 1024
+        self.CARPETA = "Archivos"
         self.hostname = socket.gethostname()
         self.localIP = myIp
         self.contArchivo = 0 #es parte del identificador de archivo 2 bytes
@@ -219,7 +220,7 @@ class nodoV():
         self.secureUDPGREEN.send(msg, direccionIP, self.BLUE_PORT)
     
     def rlocalizar(self, idArchivo):
-        localizaciones = "Archivos/Localizaciones" + str(idArchivo) + ".csv"
+        localizaciones =  self.CARPETA + "/Localizaciones/" + str(idArchivo) + ".csv"
         if not os.path.exists(localizaciones):
             os.makedirs(localizaciones)
         file = open(localizaciones, "w")
