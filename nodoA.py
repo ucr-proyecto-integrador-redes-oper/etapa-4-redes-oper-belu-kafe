@@ -176,10 +176,9 @@ class ClientNode():
 		idArchivo = int.from_bytes(mensaje[1:4], "big")
 		self.addRequest(self.reqListExiste, idArchivo, ip, puerto)
 		for x in self.idVecinosArbol:
-			if (self.vecinos[x][1] != ip_in): # mandarselo a todos excepto del que viene
-				ip_out = vecinos[x][1]
-				puerto_out = vecinos[x][2]
-				self.secureUDP.send(mensaje, ip_out, puerto_out)
+			ip, puerto = self.findIPPuerto(x)
+			if ( ip != ip_in): # mandarselo a todos excepto del que viene
+				self.secureUDP.send(mensaje, ip, puerto)
             
 
 	def depositar(self, mensaje): ##si tiene que depositar mensaje se va a la carpeta Archivos en esta carpeta abran otras carpetas las cuales se
@@ -189,7 +188,7 @@ class ClientNode():
 		numeroChunk = int.from_bytes(mensaje[4:8], "big")
 		idnodoFile = self.CARPETA + "/" + str(self.nodoId)
 		if os.path.exists(idnodoFile) == False:
-			 os.makedirs(idnodoFile)
+			os.makedirs(idnodoFile)
 		direccion = idnodoFile + "/" + str(identArchivo)
 		nombreArchivoNuevo = direccion + "/" + str(numeroChunk) + ".txt"
 		chunk = mensaje[8:len(mensaje)]
@@ -272,16 +271,20 @@ class ClientNode():
 				print("Yo soy " + str(self.nodoId) + " con IP " + self.localIP + " y puerto " + str(self.localPort))
 				for n in self.vecinos:
 					print(n)
+					
+	def findIPPuerto(self, idVecino):
+			for vecino in self.vecinos:
+				if vecino[0] == idVecino
+					return vecino[1], vecino[2]
 
 	def completo(self, idArchivo, ip_in, puerto_in):
 		self.ip_reply = ip_in # guarda ip proveniente para usar en la respuesta
 		self.port_reply = puerto_in # guarda puerto proveniente para usar en la respuesta
 		for x in self.idVecinosArbol:
-			if (self.vecinos[x][1] != ip_in): # mandarselo a todos excepto del que viene
-				ip_out = vecinos[x][1]
-				puerto_out = vecinos[x][2]
+			ip, puerto = self.findIPPuerto(x)
+			if ( ip != ip_in): # mandarselo a todos excepto del que viene
 				msg = (self.COMPLETE).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(2, byteorder="big")
-				self.secureUDP.send(msg, ip_out, puerto_out)
+				self.secureUDP.send(msg, ip, puerto)
 		direccion = os.getcwd() + "/" + self.CARPETA + "/" + str(self.nodoId) + "/" + str(idArchivo)
 		listaChunks = listdir(direccion)
 		tipo = (self.RCOMPLETE).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(2, byteorder="big")
@@ -295,12 +298,11 @@ class ClientNode():
 		self.addRequest(self.reqListObtener, idArchivo, ip_in, puerto_in)
 		# self.ip_reply_obtener = ip_in # guarda ip proveniente para usar en la respuesta
 		# self.port_reply_obtener = puerto_in # guarda puerto proveniente para usar en la respuesta
-		for i in self.idVecinosArbol:
-			if (self.vecinos[i][1] != ip_in): # mandarselo a todos excepto del que viene
-				ip_out = vecinos[i][1]
-				puerto_out = vecinos[i][2]
+		for x in self.idVecinosArbol:
+			ip, puerto = self.findIPPuerto(x)
+			if ( ip != ip_in): # mandarselo a todos excepto del que viene
 				msg = (self.OBTENER).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(2, byteorder="big")
-				self.secureUDP.send(msg, ip_out, puerto_out)
+				self.secureUDP.send(msg, ip, puerto)
 		direccion = os.getcwd() + "/" + self.CARPETA + "/" + str(self.nodoId) + "/" + str(idArchivo)
 		listaChunks = os.listdir(direccion)
 		tipo = (self.ROBTENER).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(2, byteorder="big")
@@ -310,14 +312,13 @@ class ClientNode():
 			self.secureUDP.send(msg, ip_in, puerto_in) #mandar número de chunk ##########################################################3
 		
 
-	def localizar(self, idArchivo, ip, puerto):
+	def localizar(self, idArchivo, ip_in, puerto_in):
 		self.addRequest(self.reqListLocate, idArchivo, ip, puerto)
-		for i in self.idVecinosArbol:
-			if (self.vecinos[i][1] != ip): # mandarselo a todos excepto de la fuente
-				ip_out = vecinos[i][1]
-				puerto_out = vecinos[i][2]
-				msg = (self.OBTENER).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(2, byteorder="big")
-				self.secureUDP.send(msg, ip_out, puerto_out)
+		for x in self.idVecinosArbol:
+			ip, puerto = self.findIPPuerto(x)
+			if ( ip != ip_in): # mandarselo a todos excepto del que viene
+				msg = (self.LOCALIZAR).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(2, byteorder="big")
+				self.secureUDP.send(msg, ip, puerto)
 		direccion = os.getcwd() + "/" + self.CARPETA + "/" + str(self.nodoId) + "/" + str(idArchivo)
 		if os.path.exists(idnodoFile) == True:
 			msg = (self.RLOCALIZAR).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(3, byteorder="big") + (self.nodoId).to_bytes(2, byteorder="big")
