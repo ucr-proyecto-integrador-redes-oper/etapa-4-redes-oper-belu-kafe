@@ -313,7 +313,7 @@ class ClientNode():
 		
 
 	def localizar(self, idArchivo, ip_in, puerto_in):
-		self.addRequest(self.reqListLocate, idArchivo, ip, puerto)
+		self.addRequest(self.reqListLocate, idArchivo, ip_in, puerto_in)
 		for x in self.idVecinosArbol:
 			ip, puerto = self.findIPPuerto(x)
 			if ( ip != ip_in): # mandarselo a todos excepto del que viene
