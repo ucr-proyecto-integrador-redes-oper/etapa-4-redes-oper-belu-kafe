@@ -322,7 +322,7 @@ class ClientNode():
 		direccion = os.getcwd() + "/" + self.CARPETA + "/" + str(self.nodoId) + "/" + str(idArchivo)
 		if os.path.exists(idnodoFile) == True:
 			msg = (self.RLOCALIZAR).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(3, byteorder="big") + (self.nodoId).to_bytes(2, byteorder="big")
-			self.secureUDP.send(msg, ip, puerto)
+			self.secureUDP.send(msg, ip_in, puerto_in)
 
 	def respuestaLocalizar(self, nodoId, idArchivo):
 		self.processList(self.reqListLocate, idArchivo)
