@@ -274,7 +274,7 @@ class ClientNode():
 					
 	def findIPPuerto(self, idVecino):
 			for vecino in self.vecinos:
-				if vecino[0] == idVecino
+				if vecino[0] == idVecino:
 					return vecino[1], vecino[2]
 
 	def completo(self, idArchivo, ip_in, puerto_in):
