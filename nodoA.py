@@ -142,7 +142,7 @@ class ClientNode():
 			elif int(msgId) == self.RCOMPLETE:
 				idArchivo = int.from_bytes(infoNodo[1:4], "big")
 				chunkNum = int.from_bytes(infoNodo[4:8], "big")
-				self.respuestaLocalizar(chunkNum, idArchivo)
+				self.respuestaComplete(chunkNum, idArchivo)
 
 			elif int(msgId) == self.LOCALIZAR:
 				idArchivo = int.from_bytes(infoNodo[1:4], "big")
@@ -152,7 +152,7 @@ class ClientNode():
 			elif int(msgId) == self.RLOCALIZAR:
 				idArchivo = int.from_bytes(infoNodo[1:4], "big")
 				nodoId = int.from_bytes(infoNodo[4:6], "big")
-				print("Respuesta de localizar de archivo " + str(idArchivo) + " de el nodo " + str(nodoId))
+				print("Localizado el archivo " + str(idArchivo) + " en el nodo " + str(nodoId))
 				self.respuestaLocalizar(nodoId, idArchivo)
 
 			elif int(msgId) == self.EXISTE:
