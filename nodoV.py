@@ -93,8 +93,8 @@ class nodoV():
                 msgId = int(infoNodo[0])
                 if msgId == request:
                     if int(msgId) == self.RCOMPLETO:
-                        chunkNum = int.from_bytes(infoNodo[3:7], "big")
-                        id = int.from_bytes(infoNodo[1:3], "big")
+                        chunkNum = int.from_bytes(infoNodo[4:8], "big")
+                        id = int.from_bytes(infoNodo[1:4], "big")
                         self.rcompleto(id, chunkNum)
                         self.listaChunkIDs.clear()
                     elif int(msgId) == self.REXISTE:
@@ -197,7 +197,7 @@ class nodoV():
         self.listaChunkIDs.append(chunkNum)
         self.listaChunkIDs = list(dict.fromkeys(self.listaChunkIDs)) # elimina duplicados de la lista
         size = 0
-        for x, y in self.chunkList: # busca la cantidad de chunks que debería de tener un archivo
+        for x, y in self.chunksList: # busca la cantidad de chunks que debería de tener un archivo
             if (x == id):
                 size = y
                 break

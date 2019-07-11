@@ -311,7 +311,8 @@ class ClientNode():
 		listaChunks = os.listdir(direccion)
 		tipo = (self.RCOMPLETE).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(3, byteorder="big")
 		for z in listaChunks:
-			chunkID = (z).to_bytes(4, byteorder="big")
+			z = z[:-4]
+			chunkID = (int(z)).to_bytes(4, byteorder="big")
 			msg = tipo + chunkID
 			self.secureUDP.send(msg, ip_in, puerto_in) #mandar número de chunk
 
