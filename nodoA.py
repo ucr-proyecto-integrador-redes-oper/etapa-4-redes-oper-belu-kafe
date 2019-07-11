@@ -39,13 +39,12 @@ class ClientNode():
 		self.connected = 0 # variable que dice si estoy conectado al joinTree
 		self.idVecinosArbol = [] #solo contiene los id se deben buscar en vecinos el ip y puerto correspondientes
 		self.sendRequest()
-		self.ip_reply = 0 # para guardar la ip proveniente y usar en la respuesta del completo
-		self.port_reply = 0 # para guardar el puerto proveniente y usar en la respuesta del completo
 		self.ip_reply_obtener = 0 #para guardar la ip del verde solicitante del obtener
 		self.port_reply_obtener = 0 #para guardar el puerto del verde solicitante del obtener
 		self.reqListLocate = []
 		self.reqListExiste = []
 		self.reqListObtener = []
+		self.reqListComplete = []
 		self.ID_ARCHIVO_OBTENER = 0 #Para poder llamar al processList cuando recibí una respuesta de obtener
 		hiloConsola = Thread(target=self.consola, args=())
 		hiloConsola.start()
@@ -64,10 +63,10 @@ class ClientNode():
 	def receive(self):
 		print("mi puerto: " + str(self.localPort))
 		while True:
-			
+
 			infoNodo, address = self.secureUDP.getMessage()
 			msgId = int(infoNodo[0])
-			
+
 			if int(msgId) == self.DEPOSITAR:
 				accion = random.randint(0, 100)
 				if accion < 60:#si accion es par va a enviar y depositar
@@ -77,14 +76,14 @@ class ClientNode():
 					self.depositar(infoNodo)
 				else:
 					self.depositar(infoNodo)
-			
+
 			elif int(msgId) == self.HELLO:
 				vecinoId = int.from_bytes(infoNodo[1:3], "big")
 				vecinoIP = ip_tuple_to_str(ip_to_int_tuple(infoNodo[3:7]))
 				vecinoPort = int.from_bytes(infoNodo[7:9],"big")
 				print("Actualizando vecino " + str(vecinoId) + " con IP " + vecinoIP + " con puerto " + str(vecinoPort))
 				self.actualizarVecinos(vecinoId, vecinoIP, vecinoPort)
-			
+
 			elif int(msgId) == 15: #YOUR GRAPH POSITION cuando no hay info del vecino
 				self.nodoId = int.from_bytes(infoNodo[1:3], "big")
 				vecino = int.from_bytes(infoNodo[3:5],"big")
@@ -92,7 +91,7 @@ class ClientNode():
 				if self.isRepeated(vecino) == False:
 					vecino = [vecino, 0, 0]
 					self.vecinos.append(vecino)
-			
+
 			elif int(msgId) == 16: #YOUR GRAPH POSITION cuando hay info del vecino
 				self.nodoId = int.from_bytes(infoNodo[1:3], "big")
 				vecino = int.from_bytes(infoNodo[3:5],"big")
@@ -104,32 +103,32 @@ class ClientNode():
 					self.vecinos.append(vecino)
 				print("Enviando Hello a " + str(vecino))
 				self.helloVecino(vecinoIP, vecinoPort)
-			
+
 			elif int(msgId) == self.JOINTREE:#si recibo solicitud de unión respondo si estoy en el arbol
 				idSolicitud = int.from_bytes(infoNodo[1:3], "big")
 				self.Ido(idSolicitud)
-			
+
 			elif int(msgId) == self.IDO:#si recibo un IDO veo si estoy conectado y si no envío un daddy y agrego a mi papa a la lista idVecinosArbol
 				if self.connected == 0:
 					idPadre = int.from_bytes(infoNodo[1:3], "big")
 					self.daddy(idPadre)
 					print("Me he unido al grafo mi ID: " + str(self.nodoId) +" el ID de mi padre: " +  str(idPadre))
 					self.idVecinosArbol.append(idPadre)
-			
+
 			elif int(msgId) == self.DADDY:#si recibo un daddy agrego el id del nodo a mi lista de idVecinosArbol
 				idHijo= int.from_bytes(infoNodo[1:3], "big")
 				self.idVecinosArbol.append(idHijo)
-			
+
 			elif int(msgId) == self.STARTJOIN:##un mensaje con solo ese numero que viene de los naranjas a todos los azules que asignó para que comiencen a unirse al grafo, cuando un nodo azul recibe esto pone a correr el hilo joinTree.
 				self.startJoin()
-			
+
 			elif int(msgId) == self.OBTENER:
 				self.ID_ARCHIVO_OBTENER = int.from_bytes(infoNodo[1:3], "big")
 				print("Procediendo a obtener el archivo con id ", self.ID_ARCHIVO_OBTENER)
 				ip_in = int.from_bytes(address[0:4], "big") #ip del nodo proveniente
 				puerto_in = int.from_bytes(address[4:5], "big") #puerto del nodo proveniente
 				self.obtener(self.ID_ARCHIVO_OBTENER, ip_in, puerto_in)
-			
+
 			elif int(msgId) == self.ROBTENER:
 				self.processList(self.reqListObtener, self.ID_ARCHIVO_OBTENER)
 				self.secureUDP.send(infoNodo, self.ip_reply_obtener, self.port_reply_obtener)
@@ -139,36 +138,38 @@ class ClientNode():
 				idArchivo = int.from_bytes(infoNodo[1:4], "big")
 				print("Revisando si el archivo está completo...")
 				self.completo(idArchivo, address[0], address[1])
-			
+
 			elif int(msgId) == self.RCOMPLETE:
-				self.secureUDP.send(infoNodo, self.ip_reply, self.port_reply)
-			
+				idArchivo = int.from_bytes(infoNodo[1:4], "big")
+				chunkNum = int.from_bytes(infoNodo[4:8], "big")
+				self.respuestaLocalizar(chunkNum, idArchivo)
+
 			elif int(msgId) == self.LOCALIZAR:
 				idArchivo = int.from_bytes(infoNodo[1:4], "big")
 				print("Solicitud de localizar de archivo " + str(idArchivo))
 				self.localizar(idArchivo, address[0], address[1])
-			
+
 			elif int(msgId) == self.RLOCALIZAR:
 				idArchivo = int.from_bytes(infoNodo[1:4], "big")
 				nodoId = int.from_bytes(infoNodo[4:6], "big")
 				print("Respuesta de localizar de archivo " + str(idArchivo) + " de el nodo " + str(nodoId))
 				self.respuestaLocalizar(nodoId, idArchivo)
-			
+
 			elif int(msgId) == self.EXISTE:
 				if exist(infoNodo) == True:
 					msg = (self.REXIST).to_bytes(1, byteorder="big") + infoNodo[1:4]
 					self.secureUDP.send(msg, address[0], address[1]);
 				else:
 					msgExiste(infoNodo, address[0], address[1])
-			
+
 			elif  int(msgId) == self.REXISTE:
 				idArchivo = int.from_bytes(infoNodo[1:4], "big")
 				self.processList(self.reqListExiste, idArchivo)
-			
+
 			elif  int(msgId) == self.DELETE:
 				idArchivo = int.from_bytes(infoNodo[1:4], "big")
 				delete(idArchivo)
-                
+
 	def delete(self, idArchivo):
 		idnodoFile = self.CARPETA + "/" + str(self.nodoId)
 		direccion = idnodoFile + "/" + str(idArchivo)
@@ -185,7 +186,7 @@ class ClientNode():
 			return True
 		else:
 			return False
-			
+
 	def msgExiste(self, mensaje, ip_in, puerto_in):
 		idArchivo = int.from_bytes(mensaje[1:4], "big")
 		self.addRequest(self.reqListExiste, idArchivo, ip, puerto)
@@ -193,7 +194,7 @@ class ClientNode():
 			ip, puerto = self.findIPPuerto(x)
 			if ( ip != ip_in): # mandarselo a todos excepto del que viene
 				self.secureUDP.send(mensaje, ip, puerto)
-            
+
 
 	def depositar(self, mensaje): ##si tiene que depositar mensaje se va a la carpeta Archivos en esta carpeta abran otras carpetas las cuales se
 		#identifican con el id de nodo, y luego otras con identificador de archivo si la carpeta existe solo añade el nuevo chunk
@@ -249,7 +250,7 @@ class ClientNode():
 				if vecino[1] != 0 and vecino[2] != 0:
 					cantidadDeVecinos += 1
 			if cantidadDeVecinos == len(self.vecinos):
-				break					
+				break
 		print("Starting... joinTree")
 		hiloJoin = Thread(target=self.joinTree, args=())
 		hiloJoin.start()
@@ -285,15 +286,16 @@ class ClientNode():
 				print("Yo soy " + str(self.nodoId) + " con IP " + self.localIP + " y puerto " + str(self.localPort))
 				for n in self.vecinos:
 					print(n)
-					
+
 	def findIPPuerto(self, idVecino):
 			for vecino in self.vecinos:
 				if vecino[0] == idVecino:
 					return vecino[1], vecino[2]
 
 	def completo(self, idArchivo, ip_in, puerto_in):
-		self.ip_reply = ip_in # guarda ip proveniente para usar en la respuesta
-		self.port_reply = puerto_in # guarda puerto proveniente para usar en la respuesta
+		self.addRequest(self.reqListComplete, idArchivo, ip_in, puerto_in);
+		#//self.ip_reply = ip_in # guarda ip proveniente para usar en la respuesta
+		#self.port_reply = puerto_in # guarda puerto proveniente para usar en la respuesta
 		for x in self.idVecinosArbol:
 			ip, puerto = self.findIPPuerto(x)
 			if ( ip != ip_in): # mandarselo a todos excepto del que viene
@@ -306,6 +308,13 @@ class ClientNode():
 			chunkID = (z).to_bytes(4, byteorder="big")
 			msg = tipo + chunkID
 			self.secureUDP.send(msg, ip_in, puerto_in) #mandar número de chunk
+
+	def respuestaComplete(self, chunkNum, idArchivo):
+		self.processList(self.reqListComplete, idArchivo)
+		for request in self.reqListComplete:
+			if request[0] == idArchivo:
+				msg = (self.RCOMPLETE).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(3, byteorder="big") + (chunkNum).to_bytes(4, byteorder="big")
+				self.secureUDP.send(msg, request[1], request[2])
 
 	#Metodo debe de hacer bcast a los demás azules, traer los chunks, sin repetir, y una vez que están todos pasarlos al verde solicitante
 	def obtener(self, idArchivo, ip_in, puerto_in):
@@ -324,7 +333,7 @@ class ClientNode():
 			chunkID = (j).to_bytes(4, byteorder="big")
 			msg = tipo + chunkID
 			self.secureUDP.send(msg, ip_in, puerto_in) #mandar número de chunk ##########################################################3
-		
+
 
 	def localizar(self, idArchivo, ip_in, puerto_in):
 		self.addRequest(self.reqListLocate, idArchivo, ip_in, puerto_in)
@@ -352,7 +361,7 @@ class ClientNode():
 		for request in reqList:
 			if request[0] == idArchivo and request[1] == ip and request[2] == puerto:
 				repeatedRequest = True
-		
+
 		#Si no estoy en la lista, me agrego
 		if repeatedRequest == False:
 			req = [idArchivo, ip, puerto, 0]
