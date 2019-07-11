@@ -39,13 +39,14 @@ class ClientNode():
 		self.connected = 0 # variable que dice si estoy conectado al joinTree
 		self.idVecinosArbol = [] #solo contiene los id se deben buscar en vecinos el ip y puerto correspondientes
 		self.sendRequest()
-		self.ip_reply_obtener = 0 #para guardar la ip del verde solicitante del obtener
-		self.port_reply_obtener = 0 #para guardar el puerto del verde solicitante del obtener
+		# self.ip_reply_obtener = 0 #para guardar la ip del verde solicitante del obtener
+		# self.port_reply_obtener = 0 #para guardar el puerto del verde solicitante del obtener
 		self.reqListLocate = []
 		self.reqListExiste = []
 		self.reqListObtener = []
 		self.reqListComplete = []
-		self.ID_ARCHIVO_OBTENER = 0 #Para poder llamar al processList cuando recibí una respuesta de obtener
+		self.chunks_obtener = []
+		# self.ID_ARCHIVO_OBTENER = 0 #Para poder llamar al processList cuando recibí una respuesta de obtener
 		hiloConsola = Thread(target=self.consola, args=())
 		hiloConsola.start()
 		hiloRecvAzul = Thread(target=self.receive, args=())
@@ -123,15 +124,17 @@ class ClientNode():
 				self.startJoin()
 
 			elif int(msgId) == self.OBTENER:
-				self.ID_ARCHIVO_OBTENER = int.from_bytes(infoNodo[1:3], "big")
-				print("Procediendo a obtener el archivo con id ", self.ID_ARCHIVO_OBTENER)
-				ip_in = int.from_bytes(address[0:4], "big") #ip del nodo proveniente
-				puerto_in = int.from_bytes(address[4:5], "big") #puerto del nodo proveniente
-				self.obtener(self.ID_ARCHIVO_OBTENER, ip_in, puerto_in)
+				#self.ID_ARCHIVO_OBTENER = int.from_bytes(infoNodo[1:3], "big")
+				idArchivo = int.from_bytes(infoNodo[1:4], "big")
+				print("Procediendo a obtener el archivo con id ", idArchivo)
+				self.obtener(idArchivo, address[0], address[1])
 
 			elif int(msgId) == self.ROBTENER:
-				self.processList(self.reqListObtener, self.ID_ARCHIVO_OBTENER)
-				self.secureUDP.send(infoNodo, self.ip_reply_obtener, self.port_reply_obtener)
+				idArchivo = int.from_bytes(infoNodo[1:4], "big")
+				chunkNum = int.from_bytes(infoNodo[4:8], "big")
+				for chunk in self.chunks_obtener:
+					chunkBinario = open(chunk, "rb")
+					self.respuestaObtener(chunkNum, idArchivo, chunkBinario)
 
 			elif int(msgId) == self.COMPLETE:
 				#if(self.exist()):
@@ -326,8 +329,6 @@ class ClientNode():
 	#Metodo debe de hacer bcast a los demás azules, traer los chunks, sin repetir, y una vez que están todos pasarlos al verde solicitante
 	def obtener(self, idArchivo, ip_in, puerto_in):
 		self.addRequest(self.reqListObtener, idArchivo, ip_in, puerto_in)
-		# self.ip_reply_obtener = ip_in # guarda ip proveniente para usar en la respuesta
-		# self.port_reply_obtener = puerto_in # guarda puerto proveniente para usar en la respuesta
 		for x in self.idVecinosArbol:
 			ip, puerto = self.findIPPuerto(x)
 			if ( ip != ip_in): # mandarselo a todos excepto del que viene
@@ -337,9 +338,18 @@ class ClientNode():
 		listaChunks = os.listdir(direccion)
 		tipo = (self.ROBTENER).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(3, byteorder="big")
 		for j in listaChunks:
-			chunkID = (j).to_bytes(4, byteorder="big")
+			self.chunks_obtener.append(direccion + j) #Se agregan las rutas de los chunks para enviarlos más adelante
+			j = j[:-4]
+			chunkID = (int(j)).to_bytes(4, byteorder="big")
 			msg = tipo + chunkID
-			self.secureUDP.send(msg, ip_in, puerto_in) #mandar número de chunk ##########################################################3
+			self.secureUDP.send(msg, ip_in, puerto_in) #mandar número de chunk ##############################################
+
+	def respuestaObtener(self, chunkNum, idArchivo, chunkBinario):
+		self.processList(self.reqListObtener, idArchivo)
+		for request in self.reqListObtener:
+			if request[0] == idArchivo:
+				msg = (self.ROBTENER).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(3, byteorder="big") + (chunkNum).to_bytes(4, byteorder="big") + chunkBinario
+				self.secureUDP.send(msg, request[1], request[2])
 
 
 	def localizar(self, idArchivo, ip_in, puerto_in):

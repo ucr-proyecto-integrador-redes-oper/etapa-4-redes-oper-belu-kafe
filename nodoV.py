@@ -170,6 +170,22 @@ class nodoV():
     def robtener(self, id, chunkNum):
         self.listaChunkIDs_obtener.append(chunkNum)
         self.listaChunkIDs_obtener = list(dict.fromkeys(self.listaChunkIDs_obtener)) # elimina duplicados de la lista
+        size = 0
+        for x, y in self.chunksList: # busca la cantidad de chunks que debería de tener un archivo
+            if (x == id):
+                size = y
+                break
+
+        if (len(self.listaChunkIDs)-1 != size):
+            print("Archivo Corrupto, los chunks encontrados no calzan con el archivo que se quiere obtener")
+            return False
+        else: #Si la cantidad de chunks es igual a los chunks de archivo
+            print("Ensamblando archivo")
+            archivosObtenidos =  self.CARPETA + "/Archivos_Obtenidos/"
+            if not os.path.exists(archivosObtenidos):
+                os.makedirs(archivosObtenidos)
+            #nombreArchivoNuevo = localizaciones + str(idArchivo)            
+            
 
     def existe(self):
         print("Digite el ID del archivo que quiere consultar: ")
