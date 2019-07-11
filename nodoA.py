@@ -154,7 +154,7 @@ class ClientNode():
 			elif int(msgId) == self.RLOCALIZAR:
 				idArchivo = int.from_bytes(infoNodo[1:4], "big")
 				nodoId = int.from_bytes(infoNodo[4:6], "big")
-				print("Respuesta de localizar de archivo " + str(idArchivo) + " de el nodo " + str(nodoId))
+				print("Localizado el archivo " + str(idArchivo) + " en el nodo " + str(nodoId))
 				self.respuestalocalizar(nodoId, idArchivo)
 			
 			elif int(msgId) == self.EXISTE:
@@ -337,7 +337,7 @@ class ClientNode():
 				msg = (self.LOCALIZAR).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(3, byteorder="big")
 				self.secureUDP.send(msg, ip, puerto)
 		direccion = os.getcwd() + "/" + self.CARPETA + "/" + str(self.nodoId) + "/" + str(idArchivo)
-		if os.path.exists(idnodoFile) == True:
+		if os.path.exists(direccion) == True:
 			msg = (self.RLOCALIZAR).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(3, byteorder="big") + (self.nodoId).to_bytes(2, byteorder="big")
 			self.secureUDP.send(msg, ip_in, puerto_in)
 
