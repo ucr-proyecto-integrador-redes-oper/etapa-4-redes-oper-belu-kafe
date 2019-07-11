@@ -4,7 +4,7 @@ import sys
 import socket
 import csv
 from threading import Lock, Thread
-from time import sleep
+from time import *
 from ipaddress import*
 import re # Para usar RegEx (Expresiones Regulares)
 
@@ -18,11 +18,11 @@ class nodoN():
 		self.TOKEN_OCUPADO = 1
 		self.TOKEN_COMPLETE = 2
 		self.TOKEN_VACIO = 3
-		self.NUM_NARANJAS = 3
-		self.NUM_AZULES = 5
+		self.NUM_NARANJAS = 2
+		self.NUM_AZULES = 8
 		self.READYTOJOIN = 17
 		self.NUM_COMPLETES = 0
-		self.FULL_COMPLETES = self.NUM_NARANJAS - 1
+		self.FULL_COMPLETES = self.NUM_NARANJAS-1
 		self.hostname = socket.gethostname()
 		self.localIP = myIp
 		self.nextOrangeIp = ip
@@ -121,11 +121,11 @@ class nodoN():
 
 		if self.ipGenerador == True:
 			print("Soy nodo generador")
-			self.socketNN.settimeout(60)
+			self.socketNN.settimeout(10)
 			self.crearToken()
 		else:
 			print("No soy nodo generador")
-			self.socketNN.settimeout(30)
+			self.socketNN.settimeout(5)
 			#hago asignaciones, mando token ocupado
 
 	#Método que crea el token, si tengo solicitudes, asigno y lo mando ocupado, si no, lo mando vacío
@@ -174,7 +174,7 @@ class nodoN():
 	def sendTokenOcupado(self, nodoId):
 		#Si soy el generador, cambio temporalmente el timeout para este método
 		if self.ipGenerador == True:
-			self.socketNN.settimeout(10)
+			self.socketNN.settimeout(5)
 		recibido = False
 		#Armo el paquete
 		msgId = (1).to_bytes(1, "big")
@@ -199,7 +199,7 @@ class nodoN():
 				pass
 		#Si soy el generador, regreso el timeout al tiempo original
 		if self.ipGenerador == True:
-			self.socketNN.settimeout(60)
+			self.socketNN.settimeout(10)
 
 	#Método que recibe el token ocupado y actualiza la estructura de azules
 	def recibirTokenOcupado(self, msg):
@@ -214,7 +214,7 @@ class nodoN():
 	def enviarPaqComplete(self):
 		#Si soy el generador, cambio temporalmente el timeout para este método
 		if self.ipGenerador == True:
-			self.socketNN.settimeout(10)
+			self.socketNN.settimeout(5)
 		recibido = False
 		#Armo el paquete
 		msg = (self.TOKEN_COMPLETE).to_bytes(1, byteorder="big")
@@ -230,7 +230,7 @@ class nodoN():
 				pass
 		#Si soy el generador, regreso el timeout al tiempo original
 		if self.ipGenerador == True:
-			self.socketNN.settimeout(60)
+			self.socketNN.settimeout(10)
 
 	#Hilo que recibe solicitudes de azules y las encola
 	def recibirSolicitud(self):

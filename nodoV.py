@@ -225,7 +225,7 @@ class nodoV():
             os.makedirs(localizaciones)
         nombreArchivoNuevo = localizaciones + str(idArchivo)
         file = open(nombreArchivoNuevo, "w")
-        file.write(str(idArchivo) + ", ")
+        file.write(str(idArchivo) + ",")
         for nodo in self.listaLocalizar:
             file.write(str(nodo) + ",")
         file.close()

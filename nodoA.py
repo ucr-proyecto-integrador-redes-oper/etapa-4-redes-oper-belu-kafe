@@ -107,11 +107,9 @@ class ClientNode():
 			
 			elif int(msgId) == self.JOINTREE:#si recibo solicitud de unión respondo si estoy en el arbol
 				idSolicitud = int.from_bytes(infoNodo[1:3], "big")
-				print("Recibí una solicitud de " + str(idSolicitud))
 				self.Ido(idSolicitud)
 			
 			elif int(msgId) == self.IDO:#si recibo un IDO veo si estoy conectado y si no envío un daddy y agrego a mi papa a la lista idVecinosArbol
-				print("Recibí un IDO")
 				if self.connected == 0:
 					idPadre = int.from_bytes(infoNodo[1:3], "big")
 					self.daddy(idPadre)
@@ -120,7 +118,6 @@ class ClientNode():
 			
 			elif int(msgId) == self.DADDY:#si recibo un daddy agrego el id del nodo a mi lista de idVecinosArbol
 				idHijo= int.from_bytes(infoNodo[1:3], "big")
-				print("Recibí un daddy con " + str(idHijo))
 				self.idVecinosArbol.append(idHijo)
 			
 			elif int(msgId) == self.STARTJOIN:##un mensaje con solo ese numero que viene de los naranjas a todos los azules que asignó para que comiencen a unirse al grafo, cuando un nodo azul recibe esto pone a correr el hilo joinTree.
