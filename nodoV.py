@@ -36,9 +36,10 @@ class nodoV():
         self.identificadorArchivo = 32 # 1 byte por ser el grupo 1 tenemos un rango de identificador de 32 a 63
         self.idVerde = idV #este se le suma a identificador de archivo
         self.chunksList = [] #lista de pares que relaciona un archivo con la cantidad de chunks que posee
-        self.listaChunkIDs_obtener = [] #Lista de todos los chunkids de un acrhivo para la respuesta de obtener
+        self.listaChunkIDs_obtener = [] #Lista de tuplas con todos los chunk ids de un archivo y sus respectivos bits
         self.listaChunkIDs = [] #lista de todos los chunkids de un acrhivo para la respuesta de complete
         self.listaLocalizar = []
+        self.tempFile = ""
         self.secureUDPGREEN = secureUDP(self.localIP, self.GREEN_PORT)
 
     def menu(self):
@@ -101,11 +102,27 @@ class nodoV():
                         idArchivo = int.from_bytes(infoNodo[1:4], "big")
                         print("Si existe el archivo solicitado con id " + str(idArchivo))
                     elif int(msgId) == self.ROBTENER:
-                        #LLama a metodo encargado de procesar la respuesta obtenida
-                        chunkNum = int.from_bytes(infoNodo[3:7], "big")
-                        id = int.from_bytes(infoNodo[1:3], "big")
-                        self.robtener(id, chunkNum)
-                        self.listaChunkIDs_obtener.clear()
+                        idArchivo = int.from_bytes(infoNodo[1:4], "big")
+                        chunkNum = int.from_bytes(infoNodo[4:8], "big")
+                        chunkEnBits = infoNodo[8:]
+                        self.listaChunkIDs_obtener.append((chunkNum, chunkEnBits))
+                        self.listaChunkIDs_obtener = list(dict.fromkeys(self.listaChunkIDs_obtener)) # elimina duplicados de la lista
+                        size = 0
+                        for x, y in self.chunksList: # busca la cantidad de chunks que debería de tener un archivo
+                            if (x == id):
+                                size = y
+                                break
+
+                        if (len(self.listaChunkIDs_obtener)-1 == size):#Si la cantidad de chunks es igual a los chunks de archivo
+                            print("Ensamblando archivo")
+                            archivosObtenidos =  self.CARPETA + "/Archivos_Obtenidos/"
+                            if not os.path.exists(archivosObtenidos):
+                                os.makedirs(archivosObtenidos)
+                            self.listaChunkIDs_obtener.sort(key=lambda tupla: tupla[0]) #Ordena la lista de tuplas por el id del chunk
+                            self.tempFile = open(os.path.join(archivosObtenidos, str(idArchivo)+".txt"), 'wt')
+                            self.robtener()
+                       
+                        
                     elif int(msgId) == self.RLOCALIZAR:
                         idArchivo = int.from_bytes(infoNodo[1:4], "big")
                         nodoId = int.from_bytes(infoNodo[4:6], "big")
@@ -167,24 +184,21 @@ class nodoV():
         msg = tipo + fileID
         self.secureUDPGREEN.send(msg, direccionIP, self.BLUE_PORT)
 
-    def robtener(self, id, chunkNum):
-        self.listaChunkIDs_obtener.append(chunkNum)
-        self.listaChunkIDs_obtener = list(dict.fromkeys(self.listaChunkIDs_obtener)) # elimina duplicados de la lista
-        size = 0
-        for x, y in self.chunksList: # busca la cantidad de chunks que debería de tener un archivo
-            if (x == id):
-                size = y
-                break
+    def robtener(self, id, parChunk):
+        # self.listaChunkIDs_obtener.append(parChunk)
+        # self.listaChunkIDs_obtener = list(dict.fromkeys(self.listaChunkIDs_obtener)) # elimina duplicados de la lista
+        # size = 0
+        # for x, y in self.chunksList: # busca la cantidad de chunks que debería de tener un archivo
+        #     if (x == id):
+        #         size = y
+        #         break
+        hileraBitsChunks = ""
+        for tupla in self.listaChunkIDs_obtener:
+            hileraBitsChunks += tupla[1] #Le agrego a mi hilera los bits de todos los chunks
 
-        if (len(self.listaChunkIDs)-1 != size):
-            print("Archivo Corrupto, los chunks encontrados no calzan con el archivo que se quiere obtener")
-            return False
-        else: #Si la cantidad de chunks es igual a los chunks de archivo
-            print("Ensamblando archivo")
-            archivosObtenidos =  self.CARPETA + "/Archivos_Obtenidos/"
-            if not os.path.exists(archivosObtenidos):
-                os.makedirs(archivosObtenidos)
-            #nombreArchivoNuevo = localizaciones + str(idArchivo)            
+        self.tempFile.write(hileraBitsChunks)
+        self.listaChunkIDs_obtener.clear()    
+        self.tempFile.close()      
             
 
     def existe(self):
