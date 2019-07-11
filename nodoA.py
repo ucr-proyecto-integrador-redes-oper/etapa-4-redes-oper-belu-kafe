@@ -167,6 +167,7 @@ class ClientNode():
 				self.processList(self.reqListExiste, idArchivo)
 
 			elif  int(msgId) == self.DELETE:
+				print("eliminar...")
 				idArchivo = int.from_bytes(infoNodo[1:4], "big")
 				delete(idArchivo)
 				for vecino in idVecinosArbol:
