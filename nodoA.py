@@ -159,17 +159,18 @@ class ClientNode():
 				self.respuestaLocalizar(nodoId, idArchivo)
 
 			elif int(msgId) == self.EXISTE:
+				print("Solicitud de existe")
 				if exist(infoNodo) == True:
 					msg = (self.REXIST).to_bytes(1, byteorder="big") + infoNodo[1:4]
 					self.secureUDP.send(msg, address[0], address[1]);
 				else:
 					msgExiste(infoNodo, address[0], address[1])
 
-			elif  int(msgId) == self.REXISTE:
+			elif int(msgId) == self.REXISTE:
 				idArchivo = int.from_bytes(infoNodo[1:4], "big")
 				self.processList(self.reqListExiste, idArchivo)
 
-			elif  int(msgId) == self.DELETE:
+			elif int(msgId) == self.DELETE:
 				print("eliminar...")
 				idArchivo = int.from_bytes(infoNodo[1:4], "big")
 				delete(idArchivo)
@@ -191,7 +192,7 @@ class ClientNode():
 		idnodoFile = self.CARPETA + "/" + str(self.nodoId)
 		direccion = idnodoFile + "/" + str(identArchivo)
 		if os.path.exists(direccion):
-			print("si existe archivo...")
+			print("¡Si existe archivo!")
 			return True
 		else:
 			return False
@@ -294,6 +295,8 @@ class ClientNode():
 			if resp == "1":
 				print("Yo soy " + str(self.nodoId) + " con IP " + self.localIP + " y puerto " + str(self.localPort))
 				for n in self.vecinos:
+					print(n)
+				for n in self.idVecinosArbol:
 					print(n)
 
 	def findIPPuerto(self, idVecino):

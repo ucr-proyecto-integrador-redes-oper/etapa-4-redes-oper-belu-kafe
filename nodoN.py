@@ -18,8 +18,8 @@ class nodoN():
 		self.TOKEN_OCUPADO = 1
 		self.TOKEN_COMPLETE = 2
 		self.TOKEN_VACIO = 3
-		self.NUM_NARANJAS = 2
-		self.NUM_AZULES = 2
+		self.NUM_NARANJAS = 5
+		self.NUM_AZULES = 10
 		self.READYTOJOIN = 17
 		self.NUM_COMPLETES = 0
 		self.FULL_COMPLETES = self.NUM_NARANJAS-1
