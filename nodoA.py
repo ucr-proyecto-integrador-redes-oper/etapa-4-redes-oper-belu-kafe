@@ -173,7 +173,7 @@ class ClientNode():
 					ip, puerto = findIPPuerto(vecino)
 					if ip != address[0]:
 						self.secureUDP.send(infoNodo, ip, puerto)
-                    
+
 
 	def delete(self, idArchivo):
 		idnodoFile = self.CARPETA + "/" + str(self.nodoId)
@@ -307,7 +307,7 @@ class ClientNode():
 				msg = (self.COMPLETE).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(3, byteorder="big")
 				self.secureUDP.send(msg, ip, puerto)
 		direccion = os.getcwd() + "/" + self.CARPETA + "/" + str(self.nodoId) + "/" + str(idArchivo)
-		listaChunks = listdir(direccion)
+		listaChunks = os.listdir(direccion)
 		tipo = (self.RCOMPLETE).to_bytes(1, byteorder="big") + (idArchivo).to_bytes(3, byteorder="big")
 		for z in listaChunks:
 			chunkID = (z).to_bytes(4, byteorder="big")

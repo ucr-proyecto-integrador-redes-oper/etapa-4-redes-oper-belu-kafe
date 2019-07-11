@@ -13,7 +13,7 @@ import signal
 from contextlib import contextmanager
 
 class nodoV():
-    
+
     # constructor de la clase nodo
     def __init__(self, myIp, idV):  # constructor
         self.DEPOSITAR = 0
@@ -168,7 +168,7 @@ class nodoV():
         self.secureUDPGREEN.send(msg, direccionIP, self.BLUE_PORT)
 
     def robtener(self, id, chunkNum):
-        self.listaChunkIDs_obtener.append(chunkNum) 
+        self.listaChunkIDs_obtener.append(chunkNum)
         self.listaChunkIDs_obtener = list(dict.fromkeys(self.listaChunkIDs_obtener)) # elimina duplicados de la lista
 
     def existe(self):
@@ -218,9 +218,9 @@ class nodoV():
         fileID = (idArchivo).to_bytes(3, byteorder="big")
         msg = tipo + fileID
         self.secureUDPGREEN.send(msg, direccionIP, self.BLUE_PORT)
-    
+
     def rlocalizar(self, idArchivo):
-        localizaciones =  self.CARPETA + "/Localizaciones/" 
+        localizaciones =  self.CARPETA + "/Localizaciones/"
         if not os.path.exists(localizaciones):
             os.makedirs(localizaciones)
         nombreArchivoNuevo = localizaciones + str(idArchivo)

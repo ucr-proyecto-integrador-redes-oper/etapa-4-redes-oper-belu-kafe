@@ -19,7 +19,7 @@ class nodoN():
 		self.TOKEN_COMPLETE = 2
 		self.TOKEN_VACIO = 3
 		self.NUM_NARANJAS = 2
-		self.NUM_AZULES = 8
+		self.NUM_AZULES = 2
 		self.READYTOJOIN = 17
 		self.NUM_COMPLETES = 0
 		self.FULL_COMPLETES = self.NUM_NARANJAS-1
@@ -76,7 +76,7 @@ class nodoN():
 					else:
 						print("Recibi token vacio y asigne a " + str(nodoId))
 						self.sendTokenOcupado(nodoId)
-						if self.NUM_AZULES == 0: #Si ya asigné todos mis azules							
+						if self.NUM_AZULES == 0: #Si ya asigné todos mis azules
 							self.enviarPaqComplete()
 				if tipoMensaje == self.TOKEN_OCUPADO:
 					self.recibirTokenOcupado(msg)
@@ -135,7 +135,7 @@ class nodoN():
 			self.sendTokenVacio()
 		else:
 			self.sendTokenOcupado(nodoId)
-	
+
 	#Método que arma el token vacío y lo pasa
 	def sendTokenVacio(self):
 		tipoMensaje = (3).to_bytes(1,"big")
@@ -241,7 +241,7 @@ class nodoN():
 			info = ip, port
 			if self.isRepeated(ip, port) == False:
 				self.cola.append(info)
-	
+
 	#Método que verifica si las solicitudes que llegan son repetidas
 	def isRepeated(self, ip, port):
 		for x, y in self.mapa.items():
@@ -269,7 +269,7 @@ class nodoN():
 		for x, y in self.mapa.items():
 			if y == (0,0):
 				return x
-	
+
 	#Método que actualiza la estructura de los azules asignados
 	def actualizarEstructuras(self, key, ip, puerto):
 		self.mapa[str(key)] = (ip, puerto)
@@ -281,7 +281,7 @@ class nodoN():
 				print("Azules listos. ¡Notificando que pueden comenzar el árbol generador!")
 				self.readyToJoin()
 				break
-	
+
 	#Le notifica a sus azules que están listos para iniciar el árbol generdor
 	def readyToJoin(self):
 			for element in self.listaAzules:
