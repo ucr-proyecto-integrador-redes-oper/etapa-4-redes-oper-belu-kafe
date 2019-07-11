@@ -169,6 +169,11 @@ class ClientNode():
 			elif  int(msgId) == self.DELETE:
 				idArchivo = int.from_bytes(infoNodo[1:4], "big")
 				delete(idArchivo)
+				for vecino in idVecinosArbol:
+					ip, puerto = findIPPuerto(vecino)
+					if ip != address[0]:
+						self.secureUDP.send(infoNodo, ip, puerto)
+                    
 
 	def delete(self, idArchivo):
 		idnodoFile = self.CARPETA + "/" + str(self.nodoId)
