@@ -232,7 +232,7 @@ class nodoV():
 
     def eliminar(self):
         print("Digite el ID del archivo que desea eLiminar: ")
-        idArchivo = input()
+        idArchivo = int(input())
         print("Digite IP del Azul con el que desea comunicarse: ")
         direccionIP= input() #Deberia verificarse la direccion con un método de verificar público
         print("Digite puerto de Azul con el que desea comunicarse: ")
